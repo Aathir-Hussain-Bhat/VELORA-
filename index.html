@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Velora - Photo Editor</title>
+    <style>
+        /* Premium Glassmorphism & Spotify-Inspired Theme Variables */
+        :root {
+            /* Adjustable UI Bloom/Glow Intensity */
+            --glow-intensity: 0.6;
+            
+            /* Dark Mode (Spotify Inspired) */
+            --bg-gradient: radial-gradient(circle at 50% -20%, #282828 0%, #121212 100%);
+            --glass-bg: rgba(24, 24, 24, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-border-highlight: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            
+            --text-main: #ffffff;
+            --text-sub: #b3b3b3;
+            
+            /* Spotify Green Accent */
+            --accent: #1DB954;
+            --accent-rgb: 29, 185, 84;
+            
+            --btn-bg: rgba(255, 255, 255, 0.05);
+            --btn-bg-hover: rgba(255, 255, 255, 0.1);
+            --btn-primary-bg: var(--accent);
+            --btn-primary-text: #000000;
+            
+            --nav-h: 70px;
+            --radius-panel: 32px;
+            --radius-btn: 20px;
+            --radius-card: 24px;
+        }
+
+        .light-mode {
+            /* Light Mode */
+            --bg-gradient: radial-gradient(circle at 50% -20%, #ffffff 0%, #e4e4e7 100%);
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(0, 0, 0, 0.05);
+            --glass-border-highlight: rgba(0, 0, 0, 0.15);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            
+            --text-main: #121212;
+            --text-sub: #535353;
+            
+            --accent: #1ed760;
+            --accent-rgb: 30, 215, 96;
+            
+            --btn-bg: rgba(0, 0, 0, 0.03);
+            --btn-bg-hover: rgba(0, 0, 0, 0.08);
+            --btn-primary-bg: var(--accent);
+            --btn-primary-text: #000000;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.5s ease, color 0.5s ease;
+        }
+
+        /* Overlays (Loading & Exporting) */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-gradient);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: 50px; 
+            height: 50px;
+            border: 3px solid var(--glass-border-highlight);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 calc(var(--glow-intensity) * 20px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.3));
+        }
+
+        @keyframes spin { 
+            to { transform: rotate(360deg); } 
+        }
+
+        .overlay-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            color: var(--text-main);
+            text-shadow: 0 0 calc(var(--glow-intensity) * 15px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.5));
+            animation: pulse-text 2s infinite alternate;
+        }
+
+        @keyframes pulse-text {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* Header */
+        header {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        header h1 { 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+            letter-spacing: 0.05em; 
+            text-transform: uppercase;
+            text-shadow: 0 0 calc(var(--glow-intensity) * 15px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.5));
+            transition: text-shadow 0.3s ease;
+        }
+
+        .icon-btn {
+            background: var(--btn-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.92);
+            background: var(--btn-bg-hover);
+        }
+
+        /* Main Preview Area */
+        main {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 90px 1.5rem calc(var(--nav-h) + 20px) 1.5rem;
+            overflow: hidden;
+            /* Smooth transition for padding to prevent image blocking */
+            transition: padding 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Pushes the canvas up when panels are open so it remains fully visible */
+        body.panel-open main {
+            padding-bottom: calc(50vh + var(--nav-h) + 40px);
+        }
+
+        #empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-radius: var(--radius-panel);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px dashed var(--glass-border-highlight);
+            background: var(--btn-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            max-width: 300px;
+            width: 100%;
+        }
+        
+        #empty-state:hover {
+            background: var(--btn-bg-hover);
+            border-color: var(--accent);
+            box-shadow: 0 0 calc(var(--glow-intensity) * 30px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.4));
+        }
+        
+        #empty-state:active { transform: scale(0.96); }
+        #empty-state .icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; opacity: 0.8; }
+        #empty-state h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
+        #empty-state p { color: var(--text-sub); font-size: 0.85rem; font-weight: 400; }
+
+        #canvas-wrap {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+        #canvas-wrap.visible { display: flex; opacity: 1; }
+        
+        /* Ambient Bloom behind the canvas */
+        #canvas-wrap::before {
+            content: '';
+            position: absolute;
+            top: 10%; left: 10%; right: 10%; bottom: 10%;
+            background: var(--accent);
+            filter: blur(calc(var(--glow-intensity) * 80px));
+            opacity: calc(var(--glow-intensity) * 0.15);
+            z-index: -1;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 calc(var(--glow-intensity) * 20px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.2));
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        }
+
+        /* Floating Bottom Navigation */
+        nav {
+            position: fixed;
+            bottom: 20px; 
+            left: 20px; 
+            right: 20px;
+            height: var(--nav-h);
+            display: flex;
+            z-index: 100;
+            border-radius: 100px;
+            padding: 0 10px;
+            margin-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none; 
+            border: none;
+            color: var(--text-sub);
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 100px;
+            margin: 6px 2px;
+        }
+        
+        .nav-btn .icon { 
+            font-size: 1.3rem; 
+            margin-bottom: 4px; 
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+            opacity: 0.7;
+        }
+        
+        .nav-btn.active { 
+            color: var(--accent); 
+            background: var(--btn-bg);
+        }
+        
+        .nav-btn.active .icon { 
+            transform: translateY(-2px) scale(1.1); 
+            opacity: 1;
+            text-shadow: 0 0 calc(var(--glow-intensity) * 25px) var(--accent);
+        }
+
+        /* Floating Panels */
+        #panels {
+            position: fixed;
+            bottom: calc(var(--nav-h) + 35px + env(safe-area-inset-bottom)); 
+            left: 15px; 
+            right: 15px;
+            border-radius: var(--radius-panel);
+            transform: translateY(120%) scale(0.95);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 90;
+            height: 50vh; /* Fixed height ensures canvas scales perfectly above it */
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+        }
+        
+        #panels.active { 
+            transform: translateY(0) scale(1); 
+            opacity: 1; 
+            pointer-events: auto;
+        }
+
+        .panel { 
+            display: none; 
+            padding: 1.8rem; 
+            overflow-y: auto; 
+            flex: 1; 
+            scrollbar-width: none;
+        }
+        .panel::-webkit-scrollbar { display: none; }
+        
+        .panel.active { 
+            display: block; 
+            animation: fadeScale 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        
+        @keyframes fadeScale { 
+            from { opacity: 0; transform: translateY(15px) scale(0.98); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+
+        .panel-title { 
+            font-size: 1.1rem; 
+            font-weight: 700; 
+            margin-bottom: 1.5rem; 
+            letter-spacing: 0.5px; 
+            color: var(--text-main); 
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .panel-title::before, .panel-title::after {
+            content: '';
+            height: 1px;
+            flex: 1;
+            background: linear-gradient(to right, transparent, var(--glass-border-highlight), transparent);
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--btn-bg);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            padding: 14px 24px;
+            border-radius: var(--radius-btn);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px;
+            width: 100%; 
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .btn:active { transform: scale(0.96); }
+        .btn:hover { background: var(--btn-bg-hover); border-color: var(--glass-border-highlight); }
+        
+        .btn-primary { 
+            background: var(--btn-primary-bg); 
+            color: var(--btn-primary-text); 
+            border: none; 
+            font-weight: 700;
+            box-shadow: 0 4px calc(var(--glow-intensity) * 25px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.5));
+        }
+        
+        .btn-primary:hover { 
+            box-shadow: 0 6px calc(var(--glow-intensity) * 35px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.7)); 
+            transform: translateY(-1px);
+        }
+        .btn-primary:active { transform: scale(0.96); }
+        
+        .row { display: flex; gap: 1rem; }
+
+        /* Minimalist Sliders */
+        .slider-group { margin-bottom: 1.8rem; }
+        .slider-header { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 0.8rem; 
+            font-size: 0.85rem; 
+            font-weight: 500;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+        }
+        .slider-val { color: var(--text-sub); font-variant-numeric: tabular-nums; font-weight: 400; }
+        
+        input[type=range] { 
+            -webkit-appearance: none; 
+            width: 100%; 
+            height: 4px; 
+            background: var(--glass-border);
+            border-radius: 2px;
+            outline: none;
+            position: relative;
+        }
+        
+        /* Custom filled track effect using linear-gradient via JS variable --p */
+        input[type=range] {
+            background: linear-gradient(to right, var(--accent) var(--p, 50%), var(--glass-border) var(--p, 50%));
+            box-shadow: 0 0 calc(var(--glow-intensity) * 10px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.2));
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; 
+            height: 18px; 
+            width: 18px; 
+            border-radius: 50%;
+            background: var(--accent); 
+            cursor: pointer; 
+            box-shadow: 0 0 calc(var(--glow-intensity) * 20px) var(--accent);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 2px solid var(--bg-gradient); 
+        }
+        
+        input[type=range]:active::-webkit-slider-thumb {
+            transform: scale(1.4);
+            box-shadow: 0 0 calc(var(--glow-intensity) * 30px) var(--accent);
+        }
+
+        /* Presets (Glass Cards with Background Images) */
+        .presets-scroll { 
+            display: flex; 
+            overflow-x: auto; 
+            gap: 1.2rem; 
+            padding-bottom: 1rem; 
+            scrollbar-width: none; 
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+        .presets-scroll::-webkit-scrollbar { display: none; }
+        
+        .preset-card {
+            min-width: 100px; 
+            height: 120px; 
+            border-radius: var(--radius-card);
+            background-color: var(--btn-bg); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 1px solid var(--glass-border);
+            display: flex; 
+            align-items: flex-end; 
+            justify-content: center;
+            padding: 1.2rem 0.8rem; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .preset-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, transparent 20%, rgba(0,0,0,0.8));
+            z-index: 1;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        
+        .preset-card span { 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            color: #ffffff; /* Always white so it's readable over images */
+            line-height: 1.2;
+            text-align: center;
+            z-index: 2;
+            position: relative;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .preset-card:active { transform: scale(0.94); }
+        .preset-card:hover { 
+            border-color: var(--glass-border-highlight);
+        }
+        .preset-card.active { 
+            border-color: var(--accent);
+            box-shadow: 0 0 calc(var(--glow-intensity) * 30px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.4));
+            transform: translateY(-4px);
+        }
+        .preset-card.active::before { opacity: 0.9; background: linear-gradient(to bottom, transparent 10%, rgba(0,0,0,0.9)); }
+
+        /* Creator Tab */
+        .creator-wrap { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 1rem 0; 
+        }
+        .creator-title {
+            font-size: 2.2rem; 
+            font-weight: 700; 
+            letter-spacing: 0.2em; 
+            text-align: center;
+            margin-bottom: 0.8rem;
+            color: var(--text-main);
+            text-shadow: 0 0 calc(var(--glow-intensity) * 25px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.6));
+            animation: breathe 4s infinite alternate ease-in-out;
+        }
+        .creator-sub { 
+            font-size: 0.8rem; 
+            color: var(--text-sub); 
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        
+        @keyframes breathe {
+            0% { filter: brightness(1); transform: scale(0.98); }
+            100% { filter: brightness(1.2); transform: scale(1.02); }
+        }
+        
+        #file-input { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="overlay active">
+        <div class="spinner"></div>
+        <div class="overlay-text">VELORA</div>
+    </div>
+
+    <!-- Export Overlay -->
+    <div id="export-overlay" class="overlay">
+        <div class="spinner"></div>
+        <div class="overlay-text">EXPORTING...</div>
+    </div>
+
+    <header>
+        <h1>Velora</h1>
+        <button id="theme-toggle" class="icon-btn">✧</button>
+    </header>
+
+    <main id="main">
+        <div id="empty-state">
+            <span class="icon">⚲</span>
+            <h3>Select a photo</h3>
+            <p>Tap to upload and start editing</p>
+        </div>
+        <div id="canvas-wrap">
+            <canvas id="canvas"></canvas>
+        </div>
+        <input type="file" id="file-input" accept="image/*">
+    </main>
+
+    <div id="panels" class="glass-panel">
+        <!-- Edit -->
+        <div class="panel" id="p-edit">
+            <div class="panel-title">Edit</div>
+            <button class="btn" id="btn-upload"><span>⎋</span> Open New Image</button>
+            <div class="row">
+                <button class="btn" id="btn-compare"><span>◧</span> Hold: Before</button>
+                <button class="btn" id="btn-reset"><span>↺</span> Reset</button>
+            </div>
+            <button class="btn btn-primary" id="btn-export">Export High-Res</button>
+        </div>
+
+        <!-- Looks -->
+        <div class="panel" id="p-looks">
+            <div class="panel-title">Looks</div>
+            <div class="presets-scroll" id="presets-container"></div>
+        </div>
+
+        <!-- Control -->
+        <div class="panel" id="p-control">
+            <div class="panel-title">Adjust</div>
+            <div id="sliders-control"></div>
+        </div>
+
+        <!-- FX -->
+        <div class="panel" id="p-fx">
+            <div class="panel-title">Effects</div>
+            <div id="sliders-fx"></div>
+        </div>
+
+        <!-- Creator & Settings -->
+        <div class="panel" id="p-creator">
+            <div class="creator-wrap">
+                <div class="creator-title">BHAT BOYKA</div>
+                <div class="creator-sub">Velora Visionary</div>
+                
+                <div style="width: 100%; max-width: 320px; margin-top: 3rem;">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span>UI Bloom Intensity</span>
+                            <span class="slider-val" id="val-ui-glow">0.60</span>
+                        </div>
+                        <input type="range" id="sl-ui-glow" min="0" max="2" step="0.01" value="0.6">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="glass-panel">
+        <button class="nav-btn" data-target="edit">
+            <span class="icon">⎋</span>
+            <span>Edit</span>
+        </button>
+        <button class="nav-btn" data-target="looks">
+            <span class="icon">✧</span>
+            <span>Looks</span>
+        </button>
+        <button class="nav-btn" data-target="control">
+            <span class="icon">⎚</span>
+            <span>Adjust</span>
+        </button>
+        <button class="nav-btn" data-target="fx">
+            <span class="icon">⚝</span>
+            <span>FX</span>
+        </button>
+        <button class="nav-btn" data-target="creator">
+            <span class="icon">☻</span>
+            <span>Creator</span>
+        </button>
+    </nav>
+
+    <script>
+        // --- INITIAL LOAD ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loading-overlay').classList.remove('active');
+            }, 800);
+        });
+
+        // --- THEME TOGGLE ---
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            themeToggle.innerText = isLight ? '✦' : '✧';
+            triggerRender(); 
+        });
+
+        // --- CONFIG & STATE ---
+        const defState = {
+            brightness: 1, contrast: 1, saturation: 1, exposure: 0, fade: 0, warmth: 0, sharpness: 0,
+            blur: 0, grain: 0, vignette: 0, glow: 0, lightLeak: 0, dust: 0, clarity: 0
+        };
+
+        let state = { ...defState };
+        let imgOrig = null;
+        let imgPreview = null;
+        let isCompare = false;
+
+        const presets = {
+            'Boyka Mode': { brightness: 1.05, contrast: 1.1, saturation: 1.1, exposure: 0, fade: 0.1, warmth: 0.2, sharpness: 0.1, blur: 0, grain: 0.3, vignette: 0.4, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 },
+            'Cinematic': { brightness: 1, contrast: 1.3, saturation: 0.9, exposure: -0.1, fade: 0.2, warmth: -0.1, sharpness: 0, blur: 0, grain: 0.2, vignette: 0.5, glow: 0, lightLeak: 0, dust: 0, clarity: 0.2 },
+            'Vintage': { brightness: 1, contrast: 0.9, saturation: 0.7, exposure: 0.1, fade: 0.3, warmth: 0.4, sharpness: 0, blur: 1, grain: 0.6, vignette: 0.3, glow: 0.1, lightLeak: 0.2, dust: 0.4, clarity: 0 },
+            'Noir': { brightness: 1, contrast: 1.4, saturation: 0, exposure: -0.1, fade: 0, warmth: 0, sharpness: 0, blur: 0, grain: 0.4, vignette: 0.6, glow: 0, lightLeak: 0, dust: 0.1, clarity: 0.3 },
+            'Cool Blue': { brightness: 1.05, contrast: 1.05, saturation: 0.8, exposure: 0, fade: 0.1, warmth: -0.4, sharpness: 0, blur: 0, grain: 0.1, vignette: 0.2, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 },
+            'Glow': { brightness: 1.1, contrast: 1.05, saturation: 1.1, exposure: 0.1, fade: 0, warmth: 0.3, sharpness: 0, blur: 0, grain: 0, vignette: 0.1, glow: 0.4, lightLeak: 0.1, dust: 0, clarity: 0 },
+            'Pastel': { brightness: 1.15, contrast: 0.85, saturation: 0.9, exposure: 0.2, fade: 0.2, warmth: 0.1, sharpness: 0, blur: 0, grain: 0.1, vignette: 0, glow: 0.2, lightLeak: 0, dust: 0, clarity: -0.2 },
+            'Dark Mood': { brightness: 0.9, contrast: 1.2, saturation: 0.8, exposure: -0.3, fade: 0, warmth: -0.2, sharpness: 0, blur: 0, grain: 0.2, vignette: 0.7, glow: 0, lightLeak: 0, dust: 0, clarity: 0.2 },
+            'Clean Pro': { brightness: 1.02, contrast: 1.1, saturation: 1.05, exposure: 0, fade: 0, warmth: 0, sharpness: 0.2, blur: 0, grain: 0, vignette: 0.1, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 }
+        };
+
+        const controls = [
+            { id: 'brightness', label: 'Brightness', min: 0.5, max: 1.5, step: 0.01, def: 1 },
+            { id: 'contrast', label: 'Contrast', min: 0.5, max: 1.5, step: 0.01, def: 1 },
+            { id: 'saturation', label: 'Saturation', min: 0, max: 2, step: 0.01, def: 1 },
+            { id: 'exposure', label: 'Exposure', min: -1, max: 1, step: 0.01, def: 0 },
+            { id: 'fade', label: 'Fade', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'warmth', label: 'Warmth', min: -1, max: 1, step: 0.01, def: 0 },
+            { id: 'sharpness', label: 'Sharpness', min: 0, max: 1, step: 0.01, def: 0 }
+        ];
+
+        const fx = [
+            { id: 'blur', label: 'Blur', min: 0, max: 10, step: 0.1, def: 0 },
+            { id: 'grain', label: 'Grain', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'vignette', label: 'Vignette', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'glow', label: 'Glow / Bloom', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'lightLeak', label: 'Light Leak', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'dust', label: 'Dust Overlay', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'clarity', label: 'Clarity', min: -1, max: 1, step: 0.01, def: 0 }
+        ];
+
+        // --- DOM ---
+        const $ = id => document.getElementById(id);
+        const canvas = $('canvas');
+        const ctx = canvas.getContext('2d');
+        const panelsWrap = $('panels');
+        const navBtns = document.querySelectorAll('.nav-btn');
+
+        // --- PATTERNS ---
+        let patGrain, patDust;
+        function initPatterns() {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 256;
+            const x = c.getContext('2d');
+            
+            // Grain
+            const idata = x.createImageData(256, 256);
+            for(let i=0; i<idata.data.length; i+=4) {
+                const v = Math.random()*255;
+                idata.data[i] = idata.data[i+1] = idata.data[i+2] = v;
+                idata.data[i+3] = 150;
+            }
+            x.putImageData(idata, 0, 0);
+            patGrain = ctx.createPattern(c, 'repeat');
+
+            // Dust
+            x.clearRect(0,0,256,256);
+            x.fillStyle = '#fff';
+            for(let i=0; i<80; i++) {
+                x.beginPath(); x.arc(Math.random()*256, Math.random()*256, Math.random()*1.2, 0, Math.PI*2); x.fill();
+            }
+            x.strokeStyle = '#fff';
+            for(let i=0; i<10; i++) {
+                x.beginPath(); x.moveTo(Math.random()*256, Math.random()*256); x.lineTo(Math.random()*256, Math.random()*256);
+                x.lineWidth = Math.random(); x.stroke();
+            }
+            patDust = ctx.createPattern(c, 'repeat');
+        }
+        initPatterns();
+
+        // --- UI BUILDER ---
+        function updateSliderFill(el) {
+            const min = parseFloat(el.min);
+            const max = parseFloat(el.max);
+            const val = parseFloat(el.value);
+            const pct = ((val - min) / (max - min)) * 100;
+            el.style.setProperty('--p', `${pct}%`);
+        }
+
+        function buildSliders(containerId, config) {
+            const cont = $(containerId);
+            config.forEach(c => {
+                cont.innerHTML += `
+                    <div class="slider-group">
+                        <div class="slider-header"><span>${c.label}</span><span class="slider-val" id="val-${c.id}">${c.def.toFixed(2)}</span></div>
+                        <input type="range" id="sl-${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.def}">
+                    </div>
+                `;
+            });
+            config.forEach(c => {
+                const slider = $(`sl-${c.id}`);
+                updateSliderFill(slider); 
+                
+                slider.addEventListener('input', e => {
+                    state[c.id] = parseFloat(e.target.value);
+                    $(`val-${c.id}`).innerText = state[c.id].toFixed(2);
+                    updateSliderFill(e.target);
+                    document.querySelectorAll('.preset-card').forEach(el => el.classList.remove('active'));
+                    triggerRender();
+                });
+            });
+        }
+
+        function buildPresets() {
+            const cont = $('presets-container');
+            Object.keys(presets).forEach(k => {
+                const div = document.createElement('div');
+                div.className = 'preset-card';
+                div.id = `preset-card-${k.replace(/\s+/g, '-')}`;
+                div.innerHTML = `<span>${k}</span>`;
+                div.onclick = () => {
+                    document.querySelectorAll('.preset-card').forEach(el => el.classList.remove('active'));
+                    div.classList.add('active');
+                    state = { ...defState, ...presets[k] };
+                    updateSlidersUI();
+                    triggerRender();
+                };
+                cont.appendChild(div);
+            });
+        }
+
+        function updateSlidersUI() {
+            [...controls, ...fx].forEach(c => {
+                const slider = $(`sl-${c.id}`);
+                slider.value = state[c.id];
+                $(`val-${c.id}`).innerText = state[c.id].toFixed(2);
+                updateSliderFill(slider);
+            });
+        }
+
+        buildSliders('sliders-control', controls);
+        buildSliders('sliders-fx', fx);
+        buildPresets();
+
+        // --- PRESET THUMBNAIL GENERATOR ---
+        function generatePresetThumbnails(sourceImg) {
+            // Create a small version of the image for performance
+            const maxThumb = 150;
+            let w = sourceImg.width, h = sourceImg.height;
+            if (w > maxThumb || h > maxThumb) {
+                const r = Math.min(maxThumb/w, maxThumb/h);
+                w *= r; h *= r;
+            }
+            
+            const tCanvas = document.createElement('canvas');
+            tCanvas.width = w; tCanvas.height = h;
+            const tCtx = tCanvas.getContext('2d');
+            tCtx.drawImage(sourceImg, 0, 0, w, h);
+            
+            const thumbImg = new Image();
+            thumbImg.onload = () => {
+                const renderCanvas = document.createElement('canvas');
+                const renderCtx = renderCanvas.getContext('2d');
+                
+                // Apply each preset to the thumbnail and set as background
+                Object.keys(presets).forEach(k => {
+                    const presetState = { ...defState, ...presets[k] };
+                    draw(renderCanvas, renderCtx, thumbImg, presetState);
+                    const dataUrl = renderCanvas.toDataURL('image/jpeg', 0.6);
+                    const card = document.getElementById(`preset-card-${k.replace(/\s+/g, '-')}`);
+                    if(card) {
+                        card.style.backgroundImage = `url(${dataUrl})`;
+                    }
+                });
+            };
+            thumbImg.src = tCanvas.toDataURL('image/jpeg', 0.8);
+        }
+
+        // --- UI BLOOM SLIDER LOGIC ---
+        const uiGlowSlider = $('sl-ui-glow');
+        const uiGlowVal = $('val-ui-glow');
+        updateSliderFill(uiGlowSlider);
+        
+        uiGlowSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            uiGlowVal.innerText = val.toFixed(2);
+            document.documentElement.style.setProperty('--glow-intensity', val);
+            updateSliderFill(e.target);
+        });
+
+        // --- NAVIGATION ---
+        navBtns.forEach(btn => {
+            btn.onclick = () => {
+                const target = btn.dataset.target;
+                
+                // If clicking the active tab, close the panel
+                if(btn.classList.contains('active') && panelsWrap.classList.contains('active')) {
+                    panelsWrap.classList.remove('active');
+                    document.body.classList.remove('panel-open');
+                    navBtns.forEach(b => b.classList.remove('active'));
+                    return;
+                }
+
+                navBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                $(`p-${target}`).classList.add('active');
+                panelsWrap.classList.add('active');
+                document.body.classList.add('panel-open');
+            };
+        });
+
+        $('main').onclick = (e) => {
+            if(e.target === $('main') || e.target.closest('#canvas-wrap')) {
+                panelsWrap.classList.remove('active');
+                document.body.classList.remove('panel-open');
+                navBtns.forEach(b => b.classList.remove('active'));
+            }
+        };
+
+        // --- FILE HANDLING ---
+        $('empty-state').onclick = () => $('file-input').click();
+        $('btn-upload').onclick = () => {
+            $('file-input').click();
+            panelsWrap.classList.remove('active');
+            document.body.classList.remove('panel-open');
+            navBtns.forEach(b => b.classList.remove('active'));
+        };
+
+        $('file-input').onchange = e => {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            // Show loading overlay
+            $('loading-overlay').classList.add('active');
+            
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const img = new Image();
+                img.onload = () => {
+                    imgOrig = img;
+                    
+                    // Create preview
+                    const max = 1200;
+                    let w = img.width, h = img.height;
+                    if(w > max || h > max) {
+                        const r = Math.min(max/w, max/h);
+                        w *= r; h *= r;
+                    }
+                    const pc = document.createElement('canvas');
+                    pc.width = w; pc.height = h;
+                    pc.getContext('2d').drawImage(img, 0, 0, w, h);
+                    
+                    const pImg = new Image();
+                    pImg.onload = () => {
+                        imgPreview = pImg;
+                        $('empty-state').style.display = 'none';
+                        $('canvas-wrap').classList.add('visible');
+                        state = { ...defState };
+                        updateSlidersUI();
+                        document.querySelectorAll('.preset-card').forEach(el => el.classList.remove('active'));
+                        
+                        // Generate preset thumbnails in background
+                        generatePresetThumbnails(pImg);
+                        
+                        triggerRender();
+                        
+                        // Hide loading overlay and open Looks tab
+                        setTimeout(() => {
+                            $('loading-overlay').classList.remove('active');
+                            navBtns[1].click(); 
+                        }, 500);
+                    };
+                    pImg.src = pc.toDataURL('image/jpeg', 0.8);
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // --- RENDER ENGINE (Debounced & Throttled for Performance) ---
+        let renderFrame = null;
+        let isRendering = false;
+        let renderQueued = false;
+
+        function triggerRender() {
+            // Debounce and throttle input for performance to prevent UI blocking
+            if (isRendering) {
+                renderQueued = true;
+                return;
+            }
+            
+            isRendering = true;
+            renderFrame = requestAnimationFrame(() => {
+                draw(canvas, ctx, imgPreview, state);
+                isRendering = false;
+                
+                if (renderQueued) {
+                    renderQueued = false;
+                    // Small debounce to allow UI thread to process slider animations smoothly
+                    setTimeout(triggerRender, 5);
+                }
+            });
+        }
+
+        // Pass renderState as a parameter so we can reuse this function for thumbnails
+        function draw(cvs, cx, img, renderState = state) {
+            if(!img) return;
+            cvs.width = img.width; cvs.height = img.height;
+            const w = cvs.width, h = cvs.height;
+
+            if(isCompare && renderState === state) {
+                cx.drawImage(img, 0, 0, w, h);
+                return;
+            }
+
+            // 1. Base CSS Filters (Hardware accelerated)
+            const b = renderState.brightness + renderState.exposure;
+            const c = renderState.contrast + (renderState.clarity * 0.2); // Clarity boosts contrast slightly
+            const s = renderState.saturation + (renderState.clarity * 0.1);
+            const bl = renderState.blur;
+            
+            cx.filter = `brightness(${b}) contrast(${c}) saturate(${s}) blur(${bl}px)`;
+            cx.drawImage(img, 0, 0, w, h);
+            cx.filter = 'none';
+
+            // 2. Warmth
+            if(renderState.warmth !== 0) {
+                cx.globalCompositeOperation = renderState.warmth > 0 ? 'overlay' : 'overlay';
+                cx.fillStyle = renderState.warmth > 0 ? `rgba(255,140,0,${renderState.warmth*0.35})` : `rgba(0,130,255,${-renderState.warmth*0.35})`;
+                cx.fillRect(0,0,w,h);
+            }
+
+            // 3. Fade
+            if(renderState.fade > 0) {
+                cx.globalCompositeOperation = 'screen';
+                cx.fillStyle = `rgba(40,40,40,${renderState.fade*0.6})`;
+                cx.fillRect(0,0,w,h);
+            }
+
+            // 4. Clarity / Sharpness (Simulated via high-pass overlay trick)
+            if(renderState.sharpness > 0 || renderState.clarity > 0) {
+                cx.globalCompositeOperation = 'overlay';
+                cx.globalAlpha = (renderState.sharpness * 0.5) + (renderState.clarity * 0.3);
+                cx.filter = 'contrast(1.5) grayscale(1)';
+                cx.drawImage(img, 0, 0, w, h);
+                cx.filter = 'none';
+                cx.globalAlpha = 1;
+            }
+
+            // 5. Glow
+            if(renderState.glow > 0) {
+                cx.globalCompositeOperation = 'screen';
+                cx.globalAlpha = renderState.glow * 0.6;
+                cx.filter = 'blur(15px) contrast(1.2)';
+                cx.drawImage(img, 0, 0, w, h);
+                cx.filter = 'none';
+                cx.globalAlpha = 1;
+            }
+
+            // 6. Light Leak
+            if(renderState.lightLeak > 0) {
+                cx.globalCompositeOperation = 'screen';
+                const grad = cx.createLinearGradient(0, 0, w*0.6, h*0.6);
+                grad.addColorStop(0, `rgba(255, 100, 50, ${renderState.lightLeak * 0.7})`);
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+                cx.fillStyle = grad;
+                cx.fillRect(0,0,w,h);
+            }
+
+            // 7. Vignette
+            if(renderState.vignette > 0) {
+                cx.globalCompositeOperation = 'multiply';
+                const grad = cx.createRadialGradient(w/2, h/2, 0, w/2, h/2, Math.max(w,h)*0.7);
+                grad.addColorStop(0.4, 'rgba(255,255,255,1)');
+                grad.addColorStop(1, `rgba(150,150,150,${1 - renderState.vignette})`);
+                cx.fillStyle = grad;
+                cx.fillRect(0,0,w,h);
+            }
+
+            // 8. Grain
+            if(renderState.grain > 0) {
+                cx.globalCompositeOperation = 'overlay';
+                cx.globalAlpha = renderState.grain * 0.8;
+                cx.fillStyle = patGrain;
+                cx.fillRect(0,0,w,h);
+                cx.globalAlpha = 1;
+            }
+
+            // 9. Dust
+            if(renderState.dust > 0) {
+                cx.globalCompositeOperation = 'screen';
+                cx.globalAlpha = renderState.dust * 0.7;
+                cx.fillStyle = patDust;
+                cx.fillRect(0,0,w,h);
+                cx.globalAlpha = 1;
+            }
+
+            cx.globalCompositeOperation = 'source-over';
+        }
+
+        // --- ACTIONS ---
+        $('btn-reset').onclick = () => {
+            state = { ...defState };
+            updateSlidersUI();
+            document.querySelectorAll('.preset-card').forEach(el => el.classList.remove('active'));
+            triggerRender();
+        };
+
+        const compBtn = $('btn-compare');
+        const startComp = () => { isCompare = true; triggerRender(); };
+        const endComp = () => { isCompare = false; triggerRender(); };
+        compBtn.onmousedown = startComp; compBtn.onmouseup = endComp; compBtn.onmouseleave = endComp;
+        compBtn.ontouchstart = (e) => { e.preventDefault(); startComp(); };
+        compBtn.ontouchend = endComp;
+
+        $('btn-export').onclick = () => {
+            if(!imgOrig) return;
+            
+            // Show export overlay
+            $('export-overlay').classList.add('active');
+            
+            // Allow UI to update before heavy processing
+            setTimeout(() => {
+                const expCanvas = document.createElement('canvas');
+                const expCtx = expCanvas.getContext('2d');
+                
+                draw(expCanvas, expCtx, imgOrig, state);
+                
+                const link = document.createElement('a');
+                link.download = `Velora_${Date.now()}.png`;
+                link.href = expCanvas.toDataURL('image/png');
+                link.click();
+                
+                // Hide overlay after a short delay to ensure download started
+                setTimeout(() => {
+                    $('export-overlay').classList.remove('active');
+                }, 800);
+            }, 100);
+        };
+
+    </script>
+</body>
+          </html>
