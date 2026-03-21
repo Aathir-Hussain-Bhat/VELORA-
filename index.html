@@ -1,11 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Velora - Photo Editor</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Cropper.js -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        zinc: {
+                            850: '#1f1f22',
+                            950: '#0a0a0b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        /* Premium Glassmorphism & Spotify-Inspired Theme Variables */
         :root {
             /* Adjustable UI Bloom/Glow Intensity */
             --glow-intensity: 0.6;
@@ -29,10 +63,12 @@
             --btn-primary-bg: var(--accent);
             --btn-primary-text: #000000;
             
-            --nav-h: 70px;
-            --radius-panel: 32px;
-            --radius-btn: 20px;
-            --radius-card: 24px;
+            /* Reduced sizes */
+            --nav-h: 60px;
+            --panel-h: 28vh;
+            --radius-panel: 24px;
+            --radius-btn: 16px;
+            --radius-card: 16px;
         }
 
         .light-mode {
@@ -65,13 +101,30 @@
         body {
             background: var(--bg-gradient);
             color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             height: 100vh;
             width: 100vw;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             transition: background 0.5s ease, color 0.5s ease;
+            overscroll-behavior-y: none;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--glass-border);
+        }
+        
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
         }
 
         /* Overlays (Loading & Exporting) */
@@ -97,13 +150,13 @@
         }
 
         .spinner {
-            width: 50px; 
-            height: 50px;
+            width: 40px; 
+            height: 40px;
             border: 3px solid var(--glass-border-highlight);
             border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 1s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             box-shadow: 0 0 calc(var(--glow-intensity) * 20px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.3));
         }
 
@@ -112,7 +165,7 @@
         }
 
         .overlay-text {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 700;
             letter-spacing: 0.2em;
             color: var(--text-main);
@@ -125,20 +178,68 @@
             100% { opacity: 1; }
         }
 
-        /* Glassmorphism Utilities */
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
+        /* Hide Scrollbar */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
         }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Cropper.js Overrides for Minimalist Aesthetic */
+        .cropper-view-box, .cropper-face {
+            border-radius: 0px;
+        }
+        .cropper-line {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .cropper-point {
+            background-color: #ffffff;
+            width: 6px;
+            height: 6px;
+            opacity: 0.9;
+        }
+        .cropper-point.point-se {
+            width: 8px;
+            height: 8px;
+        }
+        .cropper-center {
+            display: none;
+        }
+        .cropper-bg {
+            background-image: none;
+            background-color: #0a0a0b;
+        }
+        .cropper-modal {
+            background-color: rgba(10, 10, 11, 0.85);
+        }
+        .cropper-dashed {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* Grid Toggle Utility */
+        #cropperContainer.hide-guides .cropper-dashed {
+            display: none !important;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
 
         /* Header */
         header {
             position: absolute;
             top: 0; left: 0; right: 0;
-            padding: 1.5rem 2rem;
+            padding: 1rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -146,7 +247,7 @@
         }
 
         header h1 { 
-            font-size: 1.4rem; 
+            font-size: 1.2rem; 
             font-weight: 700; 
             letter-spacing: 0.05em; 
             text-transform: uppercase;
@@ -158,10 +259,10 @@
             background: var(--btn-bg);
             border: 1px solid var(--glass-border);
             color: var(--text-main);
-            font-size: 1.2rem;
+            font-size: 1rem;
             cursor: pointer;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -183,20 +284,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 90px 1.5rem calc(var(--nav-h) + 20px) 1.5rem;
+            padding: 80px 1rem calc(var(--nav-h) + 10px) 1rem;
             overflow: hidden;
-            /* Smooth transition for padding to prevent image blocking */
-            transition: padding 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: padding 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* Pushes the canvas up when panels are open so it remains fully visible */
+        /* When panel is open, reduce image size instead of pushing it up too much */
         body.panel-open main {
-            padding-bottom: calc(50vh + var(--nav-h) + 40px);
+            padding-bottom: calc(var(--panel-h) + var(--nav-h) + 20px);
+        }
+
+        body.panel-open canvas {
+            max-height: 55vh;
         }
 
         #empty-state {
             text-align: center;
-            padding: 3rem 2rem;
+            padding: 2.5rem 2rem;
             border-radius: var(--radius-panel);
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -204,7 +308,7 @@
             background: var(--btn-bg);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            max-width: 300px;
+            max-width: 280px;
             width: 100%;
         }
         
@@ -215,9 +319,9 @@
         }
         
         #empty-state:active { transform: scale(0.96); }
-        #empty-state .icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; opacity: 0.8; }
-        #empty-state h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
-        #empty-state p { color: var(--text-sub); font-size: 0.85rem; font-weight: 400; }
+        #empty-state .icon { font-size: 2rem; margin-bottom: 0.75rem; display: block; opacity: 0.8; }
+        #empty-state h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; letter-spacing: 0.5px; }
+        #empty-state p { color: var(--text-sub); font-size: 0.8rem; font-weight: 400; }
 
         #canvas-wrap {
             position: relative;
@@ -237,7 +341,7 @@
             position: absolute;
             top: 10%; left: 10%; right: 10%; bottom: 10%;
             background: var(--accent);
-            filter: blur(calc(var(--glow-intensity) * 80px));
+            filter: blur(calc(var(--glow-intensity) * 60px));
             opacity: calc(var(--glow-intensity) * 0.15);
             z-index: -1;
             transition: all 0.3s ease;
@@ -247,24 +351,24 @@
         
         canvas {
             max-width: 100%;
-            max-height: 100%;
+            max-height: 75vh;
             object-fit: contain;
-            border-radius: 16px;
+            border-radius: 12px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 calc(var(--glow-intensity) * 20px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.2));
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         /* Floating Bottom Navigation */
         nav {
             position: fixed;
-            bottom: 20px; 
-            left: 20px; 
-            right: 20px;
+            bottom: 12px; 
+            left: 12px; 
+            right: 12px;
             height: var(--nav-h);
             display: flex;
             z-index: 100;
             border-radius: 100px;
-            padding: 0 10px;
+            padding: 0 8px;
             margin-bottom: env(safe-area-inset-bottom);
         }
 
@@ -277,17 +381,17 @@
             background: none; 
             border: none;
             color: var(--text-sub);
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             border-radius: 100px;
-            margin: 6px 2px;
+            margin: 4px 2px;
+            gap: 2px;
         }
         
         .nav-btn .icon { 
-            font-size: 1.3rem; 
-            margin-bottom: 4px; 
+            font-size: 1.1rem; 
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
             opacity: 0.7;
         }
@@ -298,23 +402,25 @@
         }
         
         .nav-btn.active .icon { 
-            transform: translateY(-2px) scale(1.1); 
+            transform: translateY(-1px) scale(1.1); 
             opacity: 1;
             text-shadow: 0 0 calc(var(--glow-intensity) * 25px) var(--accent);
         }
 
-        /* Floating Panels */
+        /* Floating Panels - COMPACT VERSION */
         #panels {
             position: fixed;
-            bottom: calc(var(--nav-h) + 35px + env(safe-area-inset-bottom)); 
-            left: 15px; 
-            right: 15px;
+            bottom: calc(var(--nav-h) + 20px + env(safe-area-inset-bottom)); 
+            left: 12px; 
+            right: 12px;
             border-radius: var(--radius-panel);
             transform: translateY(120%) scale(0.95);
             opacity: 0;
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 90;
-            height: 50vh; /* Fixed height ensures canvas scales perfectly above it */
+            height: var(--panel-h);
+            min-height: 180px;
+            max-height: 240px;
             display: flex;
             flex-direction: column;
             pointer-events: none;
@@ -326,9 +432,28 @@
             pointer-events: auto;
         }
 
+        /* Close handle for panel */
+        .panel-handle {
+            width: 100%;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .panel-handle::before {
+            content: '';
+            width: 36px;
+            height: 4px;
+            background: var(--glass-border-highlight);
+            border-radius: 2px;
+        }
+
         .panel { 
             display: none; 
-            padding: 1.8rem; 
+            padding: 0.5rem 1rem 1rem 1rem; 
             overflow-y: auto; 
             flex: 1; 
             scrollbar-width: none;
@@ -337,25 +462,25 @@
         
         .panel.active { 
             display: block; 
-            animation: fadeScale 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
         }
         
         @keyframes fadeScale { 
-            from { opacity: 0; transform: translateY(15px) scale(0.98); } 
+            from { opacity: 0; transform: translateY(10px) scale(0.98); } 
             to { opacity: 1; transform: translateY(0) scale(1); } 
         }
 
         .panel-title { 
-            font-size: 1.1rem; 
-            font-weight: 700; 
-            margin-bottom: 1.5rem; 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            margin-bottom: 0.75rem; 
             letter-spacing: 0.5px; 
             color: var(--text-main); 
             text-align: center;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
         }
         
         .panel-title::before, .panel-title::after {
@@ -365,23 +490,23 @@
             background: linear-gradient(to right, transparent, var(--glass-border-highlight), transparent);
         }
 
-        /* Buttons */
+        /* Buttons - Compact */
         .btn {
             background: var(--btn-bg);
             color: var(--text-main);
             border: 1px solid var(--glass-border);
-            padding: 14px 24px;
+            padding: 10px 16px;
             border-radius: var(--radius-btn);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            gap: 10px;
+            gap: 8px;
             width: 100%; 
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
@@ -403,25 +528,25 @@
         }
         .btn-primary:active { transform: scale(0.96); }
         
-        .row { display: flex; gap: 1rem; }
+        .row { display: flex; gap: 0.75rem; }
 
-        /* Minimalist Sliders */
-        .slider-group { margin-bottom: 1.8rem; }
+        /* Minimalist Sliders - Compact */
+        .slider-group { margin-bottom: 0.75rem; }
         .slider-header { 
             display: flex; 
             justify-content: space-between; 
-            margin-bottom: 0.8rem; 
-            font-size: 0.85rem; 
+            margin-bottom: 0.4rem; 
+            font-size: 0.75rem; 
             font-weight: 500;
             color: var(--text-main);
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
-        .slider-val { color: var(--text-sub); font-variant-numeric: tabular-nums; font-weight: 400; }
+        .slider-val { color: var(--text-sub); font-variant-numeric: tabular-nums; font-weight: 400; font-size: 0.7rem; }
         
         input[type=range] { 
             -webkit-appearance: none; 
             width: 100%; 
-            height: 4px; 
+            height: 3px; 
             background: var(--glass-border);
             border-radius: 2px;
             outline: none;
@@ -436,8 +561,8 @@
         
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; 
-            height: 18px; 
-            width: 18px; 
+            height: 14px; 
+            width: 14px; 
             border-radius: 50%;
             background: var(--accent); 
             cursor: pointer; 
@@ -447,25 +572,25 @@
         }
         
         input[type=range]:active::-webkit-slider-thumb {
-            transform: scale(1.4);
+            transform: scale(1.3);
             box-shadow: 0 0 calc(var(--glow-intensity) * 30px) var(--accent);
         }
 
-        /* Presets (Glass Cards with Background Images) */
+        /* Presets (Glass Cards with Background Images) - COMPACT */
         .presets-scroll { 
             display: flex; 
             overflow-x: auto; 
-            gap: 1.2rem; 
-            padding-bottom: 1rem; 
+            gap: 0.75rem; 
+            padding-bottom: 0.5rem; 
             scrollbar-width: none; 
-            padding-left: 5px;
-            padding-right: 5px;
+            padding-left: 2px;
+            padding-right: 2px;
         }
         .presets-scroll::-webkit-scrollbar { display: none; }
         
         .preset-card {
-            min-width: 100px; 
-            height: 120px; 
+            min-width: 72px; 
+            height: 90px; 
             border-radius: var(--radius-card);
             background-color: var(--btn-bg); 
             background-size: cover;
@@ -475,33 +600,34 @@
             display: flex; 
             align-items: flex-end; 
             justify-content: center;
-            padding: 1.2rem 0.8rem; 
+            padding: 0.6rem 0.4rem; 
             cursor: pointer; 
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
+            flex-shrink: 0;
         }
         
         .preset-card::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, transparent 20%, rgba(0,0,0,0.8));
+            background: linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.8));
             z-index: 1;
             opacity: 0.7;
             transition: opacity 0.3s;
         }
         
         .preset-card span { 
-            font-size: 0.8rem; 
+            font-size: 0.65rem; 
             font-weight: 600; 
-            color: #ffffff; /* Always white so it's readable over images */
-            line-height: 1.2;
+            color: #ffffff;
+            line-height: 1.1;
             text-align: center;
             z-index: 2;
             position: relative;
-            letter-spacing: 0.5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 0.3px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
         
         .preset-card:active { transform: scale(0.94); }
@@ -510,35 +636,37 @@
         }
         .preset-card.active { 
             border-color: var(--accent);
-            box-shadow: 0 0 calc(var(--glow-intensity) * 30px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.4));
-            transform: translateY(-4px);
+            box-shadow: 0 0 calc(var(--glow-intensity) * 20px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.4));
+            transform: translateY(-2px);
         }
-        .preset-card.active::before { opacity: 0.9; background: linear-gradient(to bottom, transparent 10%, rgba(0,0,0,0.9)); }
+        .preset-card.active::before { opacity: 0.9; background: linear-gradient(to bottom, transparent 20%, rgba(0,0,0,0.9)); }
 
-        /* Creator Tab */
+        /* Creator Tab - Compact */
         .creator-wrap { 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: center; 
-            padding: 1rem 0; 
+            justify-content: flex-start; 
+            padding: 0.5rem 0; 
+            height: 100%;
         }
         .creator-title {
-            font-size: 2.2rem; 
+            font-size: 1.5rem; 
             font-weight: 700; 
-            letter-spacing: 0.2em; 
+            letter-spacing: 0.15em; 
             text-align: center;
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.25rem;
             color: var(--text-main);
             text-shadow: 0 0 calc(var(--glow-intensity) * 25px) rgba(var(--accent-rgb), calc(var(--glow-intensity) * 0.6));
             animation: breathe 4s infinite alternate ease-in-out;
         }
         .creator-sub { 
-            font-size: 0.8rem; 
+            font-size: 0.7rem; 
             color: var(--text-sub); 
             font-weight: 500;
             letter-spacing: 0.1em;
             text-transform: uppercase;
+            margin-bottom: 1.5rem;
         }
         
         @keyframes breathe {
@@ -547,9 +675,187 @@
         }
         
         #file-input { display: none; }
+
+        /* Cropper Phase Specific Styles */
+        .cropper-phase #canvas-wrap { display: none !important; }
+        .cropper-phase #panels { display: none !important; }
+        .cropper-phase nav { display: none !important; }
+        .cropper-phase main { padding-bottom: 100px; }
+        
+        .editor-phase #cropperContainer { display: none !important; }
+        .editor-phase #cropperFooter { display: none !important; }
+
+        /* Cropper Footer - Compact */
+        #cropperFooter {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--glass-border);
+            padding: 0 1rem;
+        }
+
+        .cropper-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-sub);
+            font-size: 0.65rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 10px;
+        }
+
+        .cropper-btn:hover {
+            color: var(--text-main);
+            background: var(--btn-bg-hover);
+        }
+
+        .cropper-btn.primary {
+            background: var(--accent);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 100px;
+            font-weight: 600;
+        }
+
+        .cropper-btn.primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 calc(var(--glow-intensity) * 20px) rgba(var(--accent-rgb), 0.5);
+        }
+
+        /* Aspect Ratio Presets in Cropper - Compact */
+        .ratio-preset {
+            min-width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            background: var(--btn-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-sub);
+            flex-shrink: 0;
+        }
+
+        .ratio-preset:hover {
+            border-color: var(--glass-border-highlight);
+            color: var(--text-main);
+        }
+
+        .ratio-preset.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(var(--accent-rgb), 0.1);
+        }
+
+        .ratio-preset .ratio-icon {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 2px;
+        }
+
+        .ratio-preset[data-ratio="NaN"] .ratio-icon {
+            border-style: dashed;
+        }
+
+        .ratio-preset[data-ratio="1"] .ratio-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .ratio-preset[data-ratio="1.3333333333333333"] .ratio-icon {
+            width: 20px;
+            height: 14px;
+        }
+
+        .ratio-preset[data-ratio="0.75"] .ratio-icon {
+            width: 14px;
+            height: 20px;
+        }
+
+        .ratio-preset[data-ratio="1.7777777777777777"] .ratio-icon {
+            width: 22px;
+            height: 12px;
+        }
+
+        .ratio-preset[data-ratio="0.5625"] .ratio-icon {
+            width: 12px;
+            height: 22px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* Two column layout for sliders */
+        .sliders-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1rem;
+        }
+
+        @media (max-width: 380px) {
+            .sliders-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .preset-card {
+                min-width: 64px;
+                height: 80px;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="cropper-phase">
 
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="overlay active">
@@ -565,31 +871,101 @@
 
     <header>
         <h1>Velora</h1>
-        <button id="theme-toggle" class="icon-btn">✧</button>
+        <button id="theme-toggle" class="icon-btn">
+            <i data-lucide="sun" class="w-5 h-5"></i>
+        </button>
     </header>
 
     <main id="main">
+        <!-- Empty State -->
         <div id="empty-state">
-            <span class="icon">⚲</span>
+            <span class="icon">
+                <i data-lucide="image-plus" class="w-8 h-8 mx-auto mb-2"></i>
+            </span>
             <h3>Select a photo</h3>
             <p>Tap to upload and start editing</p>
         </div>
+
+        <!-- Cropper Container -->
+        <div id="cropperContainer" class="absolute inset-0 opacity-0 pointer-events-none transition-opacity duration-500 flex items-center justify-center p-4 lg:p-12 pb-24">
+            <img id="imageToCrop" src="" alt="Workspace" class="max-w-full max-h-full object-contain">
+        </div>
+
+        <!-- Editor Canvas -->
         <div id="canvas-wrap">
             <canvas id="canvas"></canvas>
         </div>
+        
         <input type="file" id="file-input" accept="image/*">
     </main>
 
+    <!-- Cropper Footer -->
+    <footer id="cropperFooter">
+        <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar">
+            <button class="ratio-preset active" data-ratio="NaN">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase">Free</span>
+            </button>
+            <button class="ratio-preset" data-ratio="1">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase">1:1</span>
+            </button>
+            <button class="ratio-preset" data-ratio="1.3333333333333333">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase">4:3</span>
+            </button>
+            <button class="ratio-preset" data-ratio="0.75">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase">3:4</span>
+            </button>
+            <button class="ratio-preset" data-ratio="1.7777777777777777">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase">16:9</span>
+            </button>
+            <button class="ratio-preset" data-ratio="0.5625">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase">9:16</span>
+            </button>
+        </div>
+        
+        <div class="flex items-center gap-2 ml-2 pl-2 border-l border-white/10">
+            <button class="cropper-btn" id="btnRotateL">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                <span>Rotate</span>
+            </button>
+            <button class="cropper-btn" id="btnFlipH">
+                <i data-lucide="flip-horizontal" class="w-4 h-4"></i>
+                <span>Flip</span>
+            </button>
+            <button class="cropper-btn primary" id="btnConfirmCrop">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>Apply</span>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Editor Panels -->
     <div id="panels" class="glass-panel">
+        <!-- Drag handle to close -->
+        <div class="panel-handle" id="panelHandle"></div>
+        
         <!-- Edit -->
         <div class="panel" id="p-edit">
             <div class="panel-title">Edit</div>
-            <button class="btn" id="btn-upload"><span>⎋</span> Open New Image</button>
+            <button class="btn" id="btn-upload">
+                <i data-lucide="folder-open" class="w-4 h-4"></i> Open New Image
+            </button>
             <div class="row">
-                <button class="btn" id="btn-compare"><span>◧</span> Hold: Before</button>
-                <button class="btn" id="btn-reset"><span>↺</span> Reset</button>
+                <button class="btn" id="btn-compare">
+                    <i data-lucide="scan" class="w-4 h-4"></i> Compare
+                </button>
+                <button class="btn" id="btn-reset">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+                </button>
             </div>
-            <button class="btn btn-primary" id="btn-export">Export High-Res</button>
+            <button class="btn btn-primary" id="btn-export">
+                <i data-lucide="download" class="w-4 h-4"></i> Export
+            </button>
         </div>
 
         <!-- Looks -->
@@ -601,13 +977,13 @@
         <!-- Control -->
         <div class="panel" id="p-control">
             <div class="panel-title">Adjust</div>
-            <div id="sliders-control"></div>
+            <div class="sliders-grid" id="sliders-control"></div>
         </div>
 
         <!-- FX -->
         <div class="panel" id="p-fx">
             <div class="panel-title">Effects</div>
-            <div id="sliders-fx"></div>
+            <div class="sliders-grid" id="sliders-fx"></div>
         </div>
 
         <!-- Creator & Settings -->
@@ -616,10 +992,10 @@
                 <div class="creator-title">BHAT BOYKA</div>
                 <div class="creator-sub">Velora Visionary</div>
                 
-                <div style="width: 100%; max-width: 320px; margin-top: 3rem;">
+                <div style="width: 100%; max-width: 280px;">
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span>UI Bloom Intensity</span>
+                            <span>UI Bloom</span>
                             <span class="slider-val" id="val-ui-glow">0.60</span>
                         </div>
                         <input type="range" id="sl-ui-glow" min="0" max="2" step="0.01" value="0.6">
@@ -629,30 +1005,34 @@
         </div>
     </div>
 
+    <!-- Editor Navigation -->
     <nav class="glass-panel">
         <button class="nav-btn" data-target="edit">
-            <span class="icon">⎋</span>
+            <span class="icon"><i data-lucide="folder-open" class="w-4 h-4"></i></span>
             <span>Edit</span>
         </button>
         <button class="nav-btn" data-target="looks">
-            <span class="icon">✧</span>
+            <span class="icon"><i data-lucide="sparkles" class="w-4 h-4"></i></span>
             <span>Looks</span>
         </button>
         <button class="nav-btn" data-target="control">
-            <span class="icon">⎚</span>
+            <span class="icon"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i></span>
             <span>Adjust</span>
         </button>
         <button class="nav-btn" data-target="fx">
-            <span class="icon">⚝</span>
+            <span class="icon"><i data-lucide="wand-2" class="w-4 h-4"></i></span>
             <span>FX</span>
         </button>
         <button class="nav-btn" data-target="creator">
-            <span class="icon">☻</span>
+            <span class="icon"><i data-lucide="user" class="w-4 h-4"></i></span>
             <span>Creator</span>
         </button>
     </nav>
 
     <script>
+        // Initialize Icons
+        lucide.createIcons();
+
         // --- INITIAL LOAD ---
         window.addEventListener('load', () => {
             setTimeout(() => {
@@ -665,7 +1045,9 @@
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             const isLight = document.body.classList.contains('light-mode');
-            themeToggle.innerText = isLight ? '✦' : '✧';
+            const icon = themeToggle.querySelector('i');
+            icon.setAttribute('data-lucide', isLight ? 'moon' : 'sun');
+            lucide.createIcons();
             triggerRender(); 
         });
 
@@ -679,17 +1061,19 @@
         let imgOrig = null;
         let imgPreview = null;
         let isCompare = false;
+        let cropper = null;
+        let croppedImageData = null;
 
         const presets = {
-            'Boyka Mode': { brightness: 1.05, contrast: 1.1, saturation: 1.1, exposure: 0, fade: 0.1, warmth: 0.2, sharpness: 0.1, blur: 0, grain: 0.3, vignette: 0.4, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 },
+            'Boyka': { brightness: 1.05, contrast: 1.1, saturation: 1.1, exposure: 0, fade: 0.1, warmth: 0.2, sharpness: 0.1, blur: 0, grain: 0.3, vignette: 0.4, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 },
             'Cinematic': { brightness: 1, contrast: 1.3, saturation: 0.9, exposure: -0.1, fade: 0.2, warmth: -0.1, sharpness: 0, blur: 0, grain: 0.2, vignette: 0.5, glow: 0, lightLeak: 0, dust: 0, clarity: 0.2 },
             'Vintage': { brightness: 1, contrast: 0.9, saturation: 0.7, exposure: 0.1, fade: 0.3, warmth: 0.4, sharpness: 0, blur: 1, grain: 0.6, vignette: 0.3, glow: 0.1, lightLeak: 0.2, dust: 0.4, clarity: 0 },
             'Noir': { brightness: 1, contrast: 1.4, saturation: 0, exposure: -0.1, fade: 0, warmth: 0, sharpness: 0, blur: 0, grain: 0.4, vignette: 0.6, glow: 0, lightLeak: 0, dust: 0.1, clarity: 0.3 },
-            'Cool Blue': { brightness: 1.05, contrast: 1.05, saturation: 0.8, exposure: 0, fade: 0.1, warmth: -0.4, sharpness: 0, blur: 0, grain: 0.1, vignette: 0.2, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 },
+            'Cool': { brightness: 1.05, contrast: 1.05, saturation: 0.8, exposure: 0, fade: 0.1, warmth: -0.4, sharpness: 0, blur: 0, grain: 0.1, vignette: 0.2, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 },
             'Glow': { brightness: 1.1, contrast: 1.05, saturation: 1.1, exposure: 0.1, fade: 0, warmth: 0.3, sharpness: 0, blur: 0, grain: 0, vignette: 0.1, glow: 0.4, lightLeak: 0.1, dust: 0, clarity: 0 },
             'Pastel': { brightness: 1.15, contrast: 0.85, saturation: 0.9, exposure: 0.2, fade: 0.2, warmth: 0.1, sharpness: 0, blur: 0, grain: 0.1, vignette: 0, glow: 0.2, lightLeak: 0, dust: 0, clarity: -0.2 },
-            'Dark Mood': { brightness: 0.9, contrast: 1.2, saturation: 0.8, exposure: -0.3, fade: 0, warmth: -0.2, sharpness: 0, blur: 0, grain: 0.2, vignette: 0.7, glow: 0, lightLeak: 0, dust: 0, clarity: 0.2 },
-            'Clean Pro': { brightness: 1.02, contrast: 1.1, saturation: 1.05, exposure: 0, fade: 0, warmth: 0, sharpness: 0.2, blur: 0, grain: 0, vignette: 0.1, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 }
+            'Mood': { brightness: 0.9, contrast: 1.2, saturation: 0.8, exposure: -0.3, fade: 0, warmth: -0.2, sharpness: 0, blur: 0, grain: 0.2, vignette: 0.7, glow: 0, lightLeak: 0, dust: 0, clarity: 0.2 },
+            'Clean': { brightness: 1.02, contrast: 1.1, saturation: 1.05, exposure: 0, fade: 0, warmth: 0, sharpness: 0.2, blur: 0, grain: 0, vignette: 0.1, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 }
         };
 
         const controls = [
@@ -706,9 +1090,9 @@
             { id: 'blur', label: 'Blur', min: 0, max: 10, step: 0.1, def: 0 },
             { id: 'grain', label: 'Grain', min: 0, max: 1, step: 0.01, def: 0 },
             { id: 'vignette', label: 'Vignette', min: 0, max: 1, step: 0.01, def: 0 },
-            { id: 'glow', label: 'Glow / Bloom', min: 0, max: 1, step: 0.01, def: 0 },
-            { id: 'lightLeak', label: 'Light Leak', min: 0, max: 1, step: 0.01, def: 0 },
-            { id: 'dust', label: 'Dust Overlay', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'glow', label: 'Glow', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'lightLeak', label: 'Leak', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'dust', label: 'Dust', min: 0, max: 1, step: 0.01, def: 0 },
             { id: 'clarity', label: 'Clarity', min: -1, max: 1, step: 0.01, def: 0 }
         ];
 
@@ -726,7 +1110,6 @@
             c.width = 256; c.height = 256;
             const x = c.getContext('2d');
             
-            // Grain
             const idata = x.createImageData(256, 256);
             for(let i=0; i<idata.data.length; i+=4) {
                 const v = Math.random()*255;
@@ -736,7 +1119,6 @@
             x.putImageData(idata, 0, 0);
             patGrain = ctx.createPattern(c, 'repeat');
 
-            // Dust
             x.clearRect(0,0,256,256);
             x.fillStyle = '#fff';
             for(let i=0; i<80; i++) {
@@ -805,9 +1187,11 @@
         function updateSlidersUI() {
             [...controls, ...fx].forEach(c => {
                 const slider = $(`sl-${c.id}`);
-                slider.value = state[c.id];
-                $(`val-${c.id}`).innerText = state[c.id].toFixed(2);
-                updateSliderFill(slider);
+                if(slider) {
+                    slider.value = state[c.id];
+                    $(`val-${c.id}`).innerText = state[c.id].toFixed(2);
+                    updateSliderFill(slider);
+                }
             });
         }
 
@@ -817,7 +1201,6 @@
 
         // --- PRESET THUMBNAIL GENERATOR ---
         function generatePresetThumbnails(sourceImg) {
-            // Create a small version of the image for performance
             const maxThumb = 150;
             let w = sourceImg.width, h = sourceImg.height;
             if (w > maxThumb || h > maxThumb) {
@@ -835,7 +1218,6 @@
                 const renderCanvas = document.createElement('canvas');
                 const renderCtx = renderCanvas.getContext('2d');
                 
-                // Apply each preset to the thumbnail and set as background
                 Object.keys(presets).forEach(k => {
                     const presetState = { ...defState, ...presets[k] };
                     draw(renderCanvas, renderCtx, thumbImg, presetState);
@@ -866,11 +1248,8 @@
             btn.onclick = () => {
                 const target = btn.dataset.target;
                 
-                // If clicking the active tab, close the panel
                 if(btn.classList.contains('active') && panelsWrap.classList.contains('active')) {
-                    panelsWrap.classList.remove('active');
-                    document.body.classList.remove('panel-open');
-                    navBtns.forEach(b => b.classList.remove('active'));
+                    closePanel();
                     return;
                 }
 
@@ -884,28 +1263,38 @@
             };
         });
 
-        $('main').onclick = (e) => {
-            if(e.target === $('main') || e.target.closest('#canvas-wrap')) {
-                panelsWrap.classList.remove('active');
-                document.body.classList.remove('panel-open');
-                navBtns.forEach(b => b.classList.remove('active'));
-            }
-        };
-
-        // --- FILE HANDLING ---
-        $('empty-state').onclick = () => $('file-input').click();
-        $('btn-upload').onclick = () => {
-            $('file-input').click();
+        function closePanel() {
             panelsWrap.classList.remove('active');
             document.body.classList.remove('panel-open');
             navBtns.forEach(b => b.classList.remove('active'));
+        }
+
+        // Close panel via handle
+        $('panelHandle').addEventListener('click', closePanel);
+
+        // Close panel when clicking main area
+        $('main').addEventListener('click', (e) => {
+            if(e.target === $('main') || e.target.closest('#canvas-wrap')) {
+                closePanel();
+            }
+        });
+
+        // --- CROPPER PHASE ---
+        const emptyState = $('empty-state');
+        const cropperContainer = $('cropperContainer');
+        const imageToCrop = $('imageToCrop');
+        const cropperFooter = $('cropperFooter');
+
+        $('empty-state').onclick = () => $('file-input').click();
+        $('btn-upload').onclick = () => {
+            $('file-input').click();
+            closePanel();
         };
 
         $('file-input').onchange = e => {
             const file = e.target.files[0];
             if(!file) return;
             
-            // Show loading overlay
             $('loading-overlay').classList.add('active');
             
             const reader = new FileReader();
@@ -913,14 +1302,84 @@
                 const img = new Image();
                 img.onload = () => {
                     imgOrig = img;
+                    imageToCrop.src = ev.target.result;
                     
-                    // Create preview
+                    emptyState.style.display = 'none';
+                    cropperContainer.classList.remove('opacity-0', 'pointer-events-none');
+                    cropperContainer.classList.add('opacity-100');
+                    
+                    document.body.classList.remove('editor-phase');
+                    document.body.classList.add('cropper-phase');
+                    
+                    initCropper();
+                    
+                    setTimeout(() => {
+                        $('loading-overlay').classList.remove('active');
+                    }, 500);
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        function initCropper() {
+            if(cropper) cropper.destroy();
+            
+            cropper = new Cropper(imageToCrop, {
+                viewMode: 1,
+                dragMode: 'crop',
+                autoCropArea: 0.8,
+                restore: false,
+                guides: true,
+                center: false,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+                zoomable: true,
+                wheelZoomRatio: 0.1
+            });
+        }
+
+        document.querySelectorAll('.ratio-preset').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.ratio-preset').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const ratio = parseFloat(btn.dataset.ratio);
+                cropper.setAspectRatio(ratio);
+            });
+        });
+
+        $('btnRotateL').onclick = () => cropper.rotate(-90);
+        
+        let scaleX = 1;
+        $('btnFlipH').onclick = () => {
+            scaleX = scaleX === 1 ? -1 : 1;
+            cropper.scaleX(scaleX);
+        };
+
+        $('btnConfirmCrop').onclick = () => {
+            if(!cropper) return;
+            
+            $('loading-overlay').classList.add('active');
+            
+            setTimeout(() => {
+                const croppedCanvas = cropper.getCroppedCanvas({
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                });
+                
+                croppedImageData = croppedCanvas.toDataURL('image/jpeg', 0.95);
+                
+                const img = new Image();
+                img.onload = () => {
                     const max = 1200;
                     let w = img.width, h = img.height;
                     if(w > max || h > max) {
                         const r = Math.min(max/w, max/h);
                         w *= r; h *= r;
                     }
+                    
                     const pc = document.createElement('canvas');
                     pc.width = w; pc.height = h;
                     pc.getContext('2d').drawImage(img, 0, 0, w, h);
@@ -928,37 +1387,34 @@
                     const pImg = new Image();
                     pImg.onload = () => {
                         imgPreview = pImg;
-                        $('empty-state').style.display = 'none';
+                        
+                        document.body.classList.remove('cropper-phase');
+                        document.body.classList.add('editor-phase');
+                        
                         $('canvas-wrap').classList.add('visible');
                         state = { ...defState };
                         updateSlidersUI();
                         document.querySelectorAll('.preset-card').forEach(el => el.classList.remove('active'));
                         
-                        // Generate preset thumbnails in background
                         generatePresetThumbnails(pImg);
-                        
                         triggerRender();
                         
-                        // Hide loading overlay and open Looks tab
-                        setTimeout(() => {
-                            $('loading-overlay').classList.remove('active');
-                            navBtns[1].click(); 
-                        }, 500);
+                        $('loading-overlay').classList.remove('active');
+                        
+                        setTimeout(() => navBtns[1].click(), 300);
                     };
                     pImg.src = pc.toDataURL('image/jpeg', 0.8);
                 };
-                img.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
+                img.src = croppedImageData;
+            }, 100);
         };
 
-        // --- RENDER ENGINE (Debounced & Throttled for Performance) ---
+        // --- RENDER ENGINE ---
         let renderFrame = null;
         let isRendering = false;
         let renderQueued = false;
 
         function triggerRender() {
-            // Debounce and throttle input for performance to prevent UI blocking
             if (isRendering) {
                 renderQueued = true;
                 return;
@@ -971,13 +1427,11 @@
                 
                 if (renderQueued) {
                     renderQueued = false;
-                    // Small debounce to allow UI thread to process slider animations smoothly
                     setTimeout(triggerRender, 5);
                 }
             });
         }
 
-        // Pass renderState as a parameter so we can reuse this function for thumbnails
         function draw(cvs, cx, img, renderState = state) {
             if(!img) return;
             cvs.width = img.width; cvs.height = img.height;
@@ -988,9 +1442,8 @@
                 return;
             }
 
-            // 1. Base CSS Filters (Hardware accelerated)
             const b = renderState.brightness + renderState.exposure;
-            const c = renderState.contrast + (renderState.clarity * 0.2); // Clarity boosts contrast slightly
+            const c = renderState.contrast + (renderState.clarity * 0.2);
             const s = renderState.saturation + (renderState.clarity * 0.1);
             const bl = renderState.blur;
             
@@ -998,21 +1451,18 @@
             cx.drawImage(img, 0, 0, w, h);
             cx.filter = 'none';
 
-            // 2. Warmth
             if(renderState.warmth !== 0) {
-                cx.globalCompositeOperation = renderState.warmth > 0 ? 'overlay' : 'overlay';
+                cx.globalCompositeOperation = 'overlay';
                 cx.fillStyle = renderState.warmth > 0 ? `rgba(255,140,0,${renderState.warmth*0.35})` : `rgba(0,130,255,${-renderState.warmth*0.35})`;
                 cx.fillRect(0,0,w,h);
             }
 
-            // 3. Fade
             if(renderState.fade > 0) {
                 cx.globalCompositeOperation = 'screen';
                 cx.fillStyle = `rgba(40,40,40,${renderState.fade*0.6})`;
                 cx.fillRect(0,0,w,h);
             }
 
-            // 4. Clarity / Sharpness (Simulated via high-pass overlay trick)
             if(renderState.sharpness > 0 || renderState.clarity > 0) {
                 cx.globalCompositeOperation = 'overlay';
                 cx.globalAlpha = (renderState.sharpness * 0.5) + (renderState.clarity * 0.3);
@@ -1022,7 +1472,6 @@
                 cx.globalAlpha = 1;
             }
 
-            // 5. Glow
             if(renderState.glow > 0) {
                 cx.globalCompositeOperation = 'screen';
                 cx.globalAlpha = renderState.glow * 0.6;
@@ -1032,7 +1481,6 @@
                 cx.globalAlpha = 1;
             }
 
-            // 6. Light Leak
             if(renderState.lightLeak > 0) {
                 cx.globalCompositeOperation = 'screen';
                 const grad = cx.createLinearGradient(0, 0, w*0.6, h*0.6);
@@ -1042,7 +1490,6 @@
                 cx.fillRect(0,0,w,h);
             }
 
-            // 7. Vignette
             if(renderState.vignette > 0) {
                 cx.globalCompositeOperation = 'multiply';
                 const grad = cx.createRadialGradient(w/2, h/2, 0, w/2, h/2, Math.max(w,h)*0.7);
@@ -1052,7 +1499,6 @@
                 cx.fillRect(0,0,w,h);
             }
 
-            // 8. Grain
             if(renderState.grain > 0) {
                 cx.globalCompositeOperation = 'overlay';
                 cx.globalAlpha = renderState.grain * 0.8;
@@ -1061,7 +1507,6 @@
                 cx.globalAlpha = 1;
             }
 
-            // 9. Dust
             if(renderState.dust > 0) {
                 cx.globalCompositeOperation = 'screen';
                 cx.globalAlpha = renderState.dust * 0.7;
@@ -1073,7 +1518,7 @@
             cx.globalCompositeOperation = 'source-over';
         }
 
-        // --- ACTIONS ---
+        // --- EDITOR ACTIONS ---
         $('btn-reset').onclick = () => {
             state = { ...defState };
             updateSlidersUI();
@@ -1089,30 +1534,33 @@
         compBtn.ontouchend = endComp;
 
         $('btn-export').onclick = () => {
-            if(!imgOrig) return;
+            if(!imgPreview) return;
             
-            // Show export overlay
             $('export-overlay').classList.add('active');
             
-            // Allow UI to update before heavy processing
             setTimeout(() => {
-                const expCanvas = document.createElement('canvas');
-                const expCtx = expCanvas.getContext('2d');
-                
-                draw(expCanvas, expCtx, imgOrig, state);
-                
-                const link = document.createElement('a');
-                link.download = `Velora_${Date.now()}.png`;
-                link.href = expCanvas.toDataURL('image/png');
-                link.click();
-                
-                // Hide overlay after a short delay to ensure download started
-                setTimeout(() => {
-                    $('export-overlay').classList.remove('active');
-                }, 800);
+                const img = new Image();
+                img.onload = () => {
+                    const expCanvas = document.createElement('canvas');
+                    const expCtx = expCanvas.getContext('2d');
+                    expCanvas.width = img.width;
+                    expCanvas.height = img.height;
+                    
+                    draw(expCanvas, expCtx, img, state);
+                    
+                    const link = document.createElement('a');
+                    link.download = `Velora_${Date.now()}.png`;
+                    link.href = expCanvas.toDataURL('image/png');
+                    link.click();
+                    
+                    setTimeout(() => {
+                        $('export-overlay').classList.remove('active');
+                    }, 800);
+                };
+                img.src = croppedImageData;
             }, 100);
         };
 
     </script>
 </body>
-          </html>
+                    </html>
