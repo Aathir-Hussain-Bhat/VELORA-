@@ -1,1589 +1,2035 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BHAT NETWORK</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Velora - Photo Editor</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Cropper.js -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    colors: {
-                        bhat: {
-                            bg: '#F9F9F7',
-                            ink: '#1A1A1A',
-                            surface: '#FFFFFF',
-                            accent: '#C25E2A',
-                            muted: '#8C8C85',
-                            darkBg: '#121212',
-                            darkSurface: '#1E1E1E',
-                            darkInk: '#E0E0E0',
-                            darkAccent: '#00FFCC'
-                        }
-                    },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
-                        serif: ['"Cormorant Garamond"', 'serif'],
-                    }
+                    },
                 }
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
+        :root {
+            /* Light Mode (Default) */
+            --primary-bg: #fafafa;
+            --surface: #ffffff;
+            --primary-text: #1a1a1a;
+            --secondary-text: #737373;
+            --border: #e5e5e5;
+            --accent: #1a1a1a;
+            --accent-rgb: 26, 26, 26;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.05);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 40px rgba(0,0,0,0.12);
+            
+            /* UI Variables */
+            --nav-h: 60px;
+            --panel-h: 32vh;
+            --radius-panel: 20px;
+            --radius-btn: 12px;
+            --radius-card: 16px;
+            
+            /* Frame settings */
+            --frame-padding: 0;
+            --frame-radius: 8;
+            --frame-color: #ffffff;
+            --frame-shadow: 0;
+        }
+
+        .dark-mode {
+            /* Dark Mode */
+            --primary-bg: #0a0a0a;
+            --surface: #141414;
+            --primary-text: #fafafa;
+            --secondary-text: #a3a3a3;
+            --border: #262626;
+            --accent: #ffffff;
+            --accent-rgb: 255, 255, 255;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+            --shadow-xl: 0 20px 40px rgba(0,0,0,0.6);
+            --frame-color: #1a1a1a;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+
         body {
-            background-color: #F9F9F7;
-            color: #1A1A1A;
+            background: var(--primary-bg);
+            color: var(--primary-text);
             font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .dark body {
-            background-color: #121212;
-            color: #E0E0E0;
-        }
-        
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #F9F9F7;
-        }
-        .dark ::-webkit-scrollbar-track {
-            background: #121212;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #D6D6D6;
-            border-radius: 10px;
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #333;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #A3A3A3;
-        }
-        .dark ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        .page {
-            display: none;
-            min-height: 100vh;
-            padding-bottom: 100px;
-        }
-        .page.active {
-            display: block;
-        }
-
-        .ripple {
-            position: relative;
+            height: 100vh;
+            width: 100vw;
             overflow: hidden;
-        }
-        .ripple::after {
-            content: "";
-            display: block;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            background-image: radial-gradient(circle, rgba(0,0,0,0.1) 10%, transparent 10.01%);
-            background-repeat: no-repeat;
-            background-position: 50%;
-            transform: scale(10, 10);
-            opacity: 0;
-            transition: transform .5s, opacity 1s;
-        }
-        .ripple:active::after {
-            transform: scale(0, 0);
-            opacity: .3;
-            transition: 0s;
+            display: flex;
+            flex-direction: column;
+            overscroll-behavior-y: none;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
-        .btn-dark.ripple::after {
-            background-image: radial-gradient(circle, rgba(255,255,255,0.2) 10%, transparent 10.01%);
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
         }
         
-        .nav-item.active {
-            color: #1A1A1A;
-        }
-        .nav-item.active i {
-            transform: translateY(-2px);
-            transition: transform 0.3s ease;
+        .dark-mode .glass {
+            background: rgba(20, 20, 20, 0.85);
         }
 
-        @keyframes whatsapp-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5); }
-            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        .glass-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
         }
-        .whatsapp-float {
-            animation: whatsapp-pulse 2s infinite;
+
+        /* Overlays */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--primary-bg);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
         }
-        .scrollbar-hide::-webkit-scrollbar {
+        
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: 36px; 
+            height: 36px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin { 
+            to { transform: rotate(360deg); } 
+        }
+
+        .overlay-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            color: var(--primary-text);
+            text-transform: uppercase;
+        }
+
+        /* Hide Scrollbar */
+        .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
-        .scrollbar-hide {
+        .hide-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-    </style>
-</head>
-<body class="antialiased selection:bg-stone-200 selection:text-bhat-ink">
 
-    <!-- Reactive Background Elements -->
-    <div id="reactive-bg" class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <i class="fas fa-wrench absolute text-stone-200/40 text-7xl top-[15%] left-[8%] floating-tool" data-speed="2"></i>
-        <i class="fas fa-cog absolute text-stone-200/30 text-9xl top-[65%] left-[4%] floating-tool" data-speed="-3"></i>
-        <i class="fas fa-screwdriver absolute text-stone-200/40 text-8xl top-[20%] right-[10%] floating-tool" data-speed="3.5" style="transform: rotate(45deg);"></i>
-        <i class="fas fa-hammer absolute text-stone-200/40 text-6xl top-[75%] right-[12%] floating-tool" data-speed="-2.5" style="transform: rotate(-15deg);"></i>
-        <i class="fas fa-cogs absolute text-stone-200/30 text-7xl top-[40%] left-[55%] floating-tool" data-speed="1.5"></i>
-        <i class="fas fa-toolbox absolute text-stone-200/40 text-5xl top-[85%] left-[35%] floating-tool" data-speed="-1.5"></i>
-        <i class="fas fa-circle-notch absolute text-stone-200/50 text-4xl top-[30%] left-[30%] floating-tool" data-speed="4"></i>
-        <i class="fas fa-bolt absolute text-stone-200/30 text-6xl top-[55%] right-[30%] floating-tool" data-speed="-2"></i>
-    </div>
-
-    <!-- Loader -->
-    <div id="loader" class="fixed inset-0 z-50 flex items-center justify-center bg-bhat-bg transition-opacity duration-500">
-        <div class="text-center">
-            <div class="w-12 h-12 border-2 border-stone-200 border-t-bhat-ink rounded-full animate-spin mx-auto mb-6"></div>
-            <h2 class="text-xl font-serif font-bold text-bhat-ink tracking-widest uppercase">Bhat Network</h2>
-        </div>
-    </div>
-
-    <!-- Header -->
-    <header class="fixed top-0 w-full z-40 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-md border-b border-stone-200/60 dark:border-stone-800/60 transition-colors duration-300">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div class="text-lg font-serif font-bold text-bhat-ink dark:text-bhat-darkInk tracking-widest uppercase">Bhat <span class="text-stone-400 dark:text-stone-500 font-normal">Network</span></div>
-            <div class="hidden md:flex items-center space-x-8 text-sm font-medium text-stone-500 dark:text-stone-400">
-                <button onclick="navigate('home')" class="hover:text-bhat-ink dark:hover:text-bhat-darkAccent transition-colors">Home</button>
-                <button onclick="navigate('explore')" class="hover:text-bhat-ink dark:hover:text-bhat-darkAccent transition-colors">Explore</button>
-                <button onclick="navigate('add')" class="hover:text-bhat-ink dark:hover:text-bhat-darkAccent transition-colors">Add Workshop</button>
-                <button onclick="navigate('profile')" class="hover:text-bhat-ink dark:hover:text-bhat-darkAccent transition-colors">Profile</button>
-                <button onclick="navigate('dashboard')" class="hover:text-bhat-ink dark:hover:text-bhat-darkAccent transition-colors">Dashboard</button>
-                <button onclick="navigate('creator')" class="hover:text-bhat-ink dark:hover:text-bhat-darkAccent transition-colors">Creator</button>
-                <button onclick="toggleDarkMode()" class="text-lg hover:text-bhat-ink dark:hover:text-bhat-darkAccent transition-colors ml-4" id="darkModeToggleBtn">
-                    <i class="fas fa-moon"></i>
-                </button>
-            </div>
-            <div class="md:hidden flex items-center">
-                <button onclick="toggleDarkMode()" class="text-lg text-stone-500 dark:text-stone-400 hover:text-bhat-ink dark:hover:text-bhat-darkAccent transition-colors" id="darkModeToggleBtnMobile">
-                    <i class="fas fa-moon"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="pt-16 relative z-10">
-        <!-- Home Page -->
-        <section id="home" class="page active">
-            <div class="relative min-h-[75vh] flex items-center justify-center overflow-hidden">
-                <div class="absolute inset-0 z-0 opacity-[0.07] bg-[url('https://images.unsplash.com/photo-1625047509168-a71c6f959828?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-fixed parallax-bg grayscale"></div>
-                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bhat-bg z-0"></div>
-                
-                <div class="relative z-10 text-center px-4 max-w-3xl mx-auto hero-content mt-10">
-                    <span class="inline-block py-1.5 px-4 rounded-full bg-white border border-stone-200 text-stone-600 text-xs font-semibold tracking-wider uppercase mb-8 shadow-sm">
-                        Kashmir's First Mechanic Network
-                    </span>
-                    <h1 class="text-5xl md:text-7xl font-serif font-medium mb-6 leading-[1.1] text-bhat-ink">
-                        Connect. Compete.<br><span class="italic text-stone-500">Grow.</span>
-                    </h1>
-                    <p class="text-stone-500 text-lg mb-10 max-w-xl mx-auto font-light leading-relaxed">
-                        A curated platform connecting skilled mechanics, premium workshops, and customers across the valley.
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button onclick="navigate('add')" class="ripple btn-dark bg-bhat-ink text-white px-8 py-3.5 rounded-full font-medium text-sm hover:bg-stone-800 transition-all shadow-md hover:shadow-lg">
-                            Join the Network
-                        </button>
-                        <button onclick="navigate('explore')" class="ripple bg-white border border-stone-200 text-bhat-ink px-8 py-3.5 rounded-full font-medium text-sm hover:bg-stone-50 transition-all shadow-sm">
-                            Explore Workshops
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stats -->
-            <div class="max-w-7xl mx-auto px-6 py-12">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                    <div class="bg-white border border-stone-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 rounded-3xl text-center" data-aos="fade-up" data-aos-delay="0">
-                        <div class="text-4xl font-serif font-medium text-bhat-ink mb-1 counter" data-target="150">0</div>
-                        <div class="text-[10px] text-stone-400 font-semibold uppercase tracking-widest">Workshops</div>
-                    </div>
-                    <div class="bg-white border border-stone-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 rounded-3xl text-center" data-aos="fade-up" data-aos-delay="100">
-                        <div class="text-4xl font-serif font-medium text-bhat-ink mb-1 counter" data-target="500">0</div>
-                        <div class="text-[10px] text-stone-400 font-semibold uppercase tracking-widest">Mechanics</div>
-                    </div>
-                    <div class="bg-white border border-stone-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 rounded-3xl text-center" data-aos="fade-up" data-aos-delay="200">
-                        <div class="text-4xl font-serif font-medium text-bhat-ink mb-1 counter" data-target="10000">0</div>
-                        <div class="text-[10px] text-stone-400 font-semibold uppercase tracking-widest">Customers</div>
-                    </div>
-                    <div class="bg-white border border-stone-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-6 rounded-3xl text-center" data-aos="fade-up" data-aos-delay="300">
-                        <div class="text-4xl font-serif font-medium text-bhat-ink mb-1 counter" data-target="50">0</div>
-                        <div class="text-[10px] text-stone-400 font-semibold uppercase tracking-widest">Locations</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Featured Workshop -->
-            <div id="featured-section" class="max-w-7xl mx-auto px-6 py-16">
-                <div class="flex items-center justify-between mb-10">
-                    <h2 class="text-3xl font-serif font-medium text-bhat-ink">Featured <span class="italic text-stone-400">Workshop</span></h2>
-                    <div class="h-[1px] flex-1 bg-stone-200 ml-6"></div>
-                </div>
-
-                <div class="bg-white border border-stone-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] rounded-[2rem] overflow-hidden relative group" data-aos="fade-up">
-                    <div class="grid md:grid-cols-2 gap-0">
-                        <div class="relative h-72 md:h-full overflow-hidden">
-                            <img id="featured-image" src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=1000&auto=format&fit=crop" alt="Aashaq Bike Point" class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000">
-                            <div class="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold text-bhat-ink tracking-wider uppercase flex items-center gap-2 shadow-sm">
-                                <i class="fas fa-star text-amber-500"></i> Editor's Choice
-                            </div>
-                        </div>
-                        <div class="flex flex-col justify-center p-8 md:p-12">
-                            <h3 id="featured-name" class="text-4xl font-serif font-medium mb-3 text-bhat-ink dark:text-bhat-darkInk">Aashaq Bike Point</h3>
-                            <p class="text-stone-500 dark:text-stone-400 text-sm mb-8 flex items-center gap-2 font-medium">
-                                <i class="fas fa-map-marker-alt text-stone-300"></i> <span id="featured-location">Villagam, Kashmir</span>
-                            </p>
-                            
-                            <div class="space-y-3 mb-10">
-                                <div class="flex items-center gap-4 bg-stone-50 dark:bg-[#121212] border border-stone-100 dark:border-stone-800 p-4 rounded-2xl">
-                                    <div class="w-10 h-10 rounded-full bg-white dark:bg-stone-800 shadow-sm flex items-center justify-center text-stone-600 dark:text-stone-300">
-                                        <i class="fas fa-phone-alt text-sm"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">Contact</div>
-                                        <div id="featured-phone" class="font-medium text-bhat-ink dark:text-bhat-darkInk text-sm">9906584655</div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-4 bg-stone-50 dark:bg-[#121212] border border-stone-100 dark:border-stone-800 p-4 rounded-2xl">
-                                    <div class="w-10 h-10 rounded-full bg-white dark:bg-stone-800 shadow-sm flex items-center justify-center text-stone-600 dark:text-stone-300">
-                                        <i class="fas fa-clock text-sm"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">Timings</div>
-                                        <div class="font-medium text-bhat-ink dark:text-bhat-darkInk text-sm">10 AM – 10 PM <span class="text-red-400 text-xs ml-1 font-normal">(Closed Friday)</span></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                <a id="featured-link-call" href="tel:+919906584655" class="ripple bg-white dark:bg-bhat-darkSurface border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all p-3 rounded-2xl flex flex-col items-center justify-center gap-2 text-xs font-semibold text-bhat-ink dark:text-bhat-darkInk group/btn shadow-sm">
-                                    <i class="fas fa-phone text-stone-400 group-hover/btn:text-bhat-ink dark:group-hover/btn:text-white transition-colors"></i>
-                                    Call
-                                </a>
-                                <a id="featured-link-directions" href="https://g.co/kgs/jH8xfRi" target="_blank" class="ripple bg-white dark:bg-bhat-darkSurface border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all p-3 rounded-2xl flex flex-col items-center justify-center gap-2 text-xs font-semibold text-bhat-ink dark:text-bhat-darkInk group/btn shadow-sm">
-                                    <i class="fas fa-directions text-stone-400 group-hover/btn:text-blue-500 transition-colors"></i>
-                                    Directions
-                                </a>
-                                <a id="featured-link-youtube" href="https://youtube.com/@aashaqbikepoint?si=XMJbbCSTaWaL7yU8" target="_blank" class="ripple bg-white dark:bg-bhat-darkSurface border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all p-3 rounded-2xl flex flex-col items-center justify-center gap-2 text-xs font-semibold text-bhat-ink dark:text-bhat-darkInk group/btn shadow-sm">
-                                    <i class="fab fa-youtube text-stone-400 group-hover/btn:text-red-500 transition-colors"></i>
-                                    YouTube
-                                </a>
-                                <a id="featured-link-instagram" href="https://www.instagram.com/aashaq_bike_point_villagam" target="_blank" class="ripple bg-white dark:bg-bhat-darkSurface border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all p-3 rounded-2xl flex flex-col items-center justify-center gap-2 text-xs font-semibold text-bhat-ink dark:text-bhat-darkInk group/btn shadow-sm">
-                                    <i class="fab fa-instagram text-stone-400 group-hover/btn:text-pink-500 transition-colors"></i>
-                                    Instagram
-                                </a>
-                            </div>
-                            
-                            <button onclick="toggleFollow('aashaq-bike-point')" id="btn-follow-aashaq-bike-point" class="mt-6 w-full ripple bg-white border border-stone-200 text-bhat-ink hover:bg-stone-50 transition-all p-4 rounded-2xl font-semibold flex items-center justify-center gap-2 shadow-sm text-sm">
-                                <i class="far fa-heart"></i> <span id="follow-text-aashaq-bike-point">Follow Workshop</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Explore Page -->
-        <section id="explore" class="page">
-            <div class="max-w-7xl mx-auto px-6 py-8">
-                <h2 class="text-3xl font-serif font-medium mb-8 text-bhat-ink" data-aos="fade-right">Explore <span class="italic text-stone-400">Workshops</span></h2>
-                
-                <div class="bg-white border border-stone-200 shadow-sm p-2 rounded-2xl flex items-center mb-10 sticky top-20 z-30" data-aos="fade-up">
-                    <i class="fas fa-search text-stone-400 ml-4"></i>
-                    <input type="text" id="searchInput" placeholder="Search by name, location, or service..." class="bg-transparent border-none outline-none text-bhat-ink w-full p-3 placeholder-stone-400 text-sm">
-                </div>
-
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="workshopsGrid">
-                    <!-- Cards injected via JS -->
-                </div>
-            </div>
-        </section>
-
-        <!-- Add Workshop Page -->
-        <section id="add" class="page">
-            <div class="max-w-2xl mx-auto px-6 py-12">
-                <div class="text-center mb-12" data-aos="fade-down">
-                    <h2 class="text-3xl font-serif font-medium mb-3 text-bhat-ink">Register <span class="italic text-stone-400">Workshop</span></h2>
-                    <p class="text-stone-500 text-sm">Join the network and elevate your business presence.</p>
-                </div>
-
-                <form id="addWorkshopForm" class="bg-white border border-stone-100 shadow-[0_8px_30px_rgba(0,0,0,0.03)] p-8 md:p-10 rounded-[2rem] space-y-6" data-aos="fade-up">
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-semibold text-stone-500 uppercase tracking-wider pl-1">Workshop Name</label>
-                            <input type="text" id="wName" required class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3.5 text-bhat-ink text-sm focus:border-bhat-ink focus:ring-1 focus:ring-bhat-ink outline-none transition-all">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-semibold text-stone-500 uppercase tracking-wider pl-1">Owner Name</label>
-                            <input type="text" id="wOwner" required class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3.5 text-bhat-ink text-sm focus:border-bhat-ink focus:ring-1 focus:ring-bhat-ink outline-none transition-all">
-                        </div>
-                    </div>
-                    
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-semibold text-stone-500 uppercase tracking-wider pl-1">Phone Number</label>
-                            <input type="tel" id="wPhone" required class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3.5 text-bhat-ink text-sm focus:border-bhat-ink focus:ring-1 focus:ring-bhat-ink outline-none transition-all">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-semibold text-stone-500 uppercase tracking-wider pl-1">Location</label>
-                            <input type="text" id="wLocation" required class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3.5 text-bhat-ink text-sm focus:border-bhat-ink focus:ring-1 focus:ring-bhat-ink outline-none transition-all">
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-semibold text-stone-500 uppercase tracking-wider pl-1">Services Offered (comma separated)</label>
-                        <textarea id="wServices" required rows="3" class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3.5 text-bhat-ink text-sm focus:border-bhat-ink focus:ring-1 focus:ring-bhat-ink outline-none transition-all resize-none"></textarea>
-                    </div>
-
-                    <button type="submit" class="w-full ripple btn-dark bg-bhat-ink text-white font-medium text-sm p-4 rounded-2xl hover:bg-stone-800 transition-all shadow-md mt-4">
-                        Submit Registration
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- Profile Page -->
-        <section id="profile" class="page">
-            <div class="max-w-2xl mx-auto px-6 py-12">
-                <div class="bg-white border border-stone-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-10 rounded-[2rem] mb-10 text-center relative overflow-hidden" data-aos="fade-down">
-                    <div class="relative z-10">
-                        <div class="relative w-24 h-24 mx-auto mb-5 group cursor-pointer" onclick="document.getElementById('profilePhotoInput').click()">
-                            <div id="profilePhotoContainer" class="w-full h-full bg-stone-50 border border-stone-200 rounded-full flex items-center justify-center text-3xl text-stone-300 overflow-hidden">
-                                <i class="fas fa-user" id="profileIcon"></i>
-                                <img id="profileImage" src="" class="w-full h-full object-cover hidden">
-                            </div>
-                            <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i class="fas fa-camera text-white"></i>
-                            </div>
-                            <input type="file" id="profilePhotoInput" class="hidden" accept="image/*" onchange="handleProfilePhotoUpload(event)">
-                        </div>
-                        <div class="flex items-center justify-center gap-3 mb-2">
-                            <h2 class="text-3xl font-serif font-medium text-bhat-ink" id="profileNameDisplay">Guest User</h2>
-                            <button onclick="editProfileName()" class="text-stone-400 hover:text-bhat-ink transition-colors text-sm"><i class="fas fa-edit"></i></button>
-                        </div>
-                        <p class="text-stone-400 text-xs uppercase tracking-widest font-semibold">Member since 2026</p>
-                    </div>
-                </div>
-
-                <h3 class="text-lg font-serif font-medium mb-6 flex items-center gap-2 text-bhat-ink" data-aos="fade-right">
-                    <i class="fas fa-bookmark text-stone-300 text-sm"></i> Saved Workshops
-                </h3>
-                
-                <div id="followedList" class="space-y-3" data-aos="fade-up">
-                    <div class="text-center text-stone-400 py-10 text-sm bg-white border border-stone-100 border-dashed rounded-3xl" id="emptyFollowed">
-                        You haven't saved any workshops yet.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dashboard Page -->
-        <section id="dashboard" class="page">
-            <div class="max-w-4xl mx-auto px-6 py-12">
-                <div class="text-center mb-12" data-aos="fade-down">
-                    <h2 class="text-3xl font-serif font-medium mb-3 text-bhat-ink dark:text-bhat-darkInk">Mechanic <span class="italic text-stone-400 dark:text-bhat-darkAccent">Dashboard</span></h2>
-                    <p class="text-stone-500 dark:text-stone-400 text-sm">Manage your workshops, appointments, and status.</p>
-                </div>
-
-                <div id="dashboardLogin" class="bg-white dark:bg-bhat-darkSurface border border-stone-100 dark:border-stone-800 shadow-[0_8px_30px_rgba(0,0,0,0.03)] p-8 md:p-10 rounded-[2rem] max-w-md mx-auto text-center" data-aos="fade-up">
-                    <div class="w-16 h-16 bg-stone-50 dark:bg-stone-800 text-stone-500 dark:text-stone-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-6 border border-stone-100 dark:border-stone-700">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <h3 class="text-xl font-serif font-medium mb-4 text-bhat-ink dark:text-bhat-darkInk">Owner Login</h3>
-                    <p class="text-sm text-stone-500 dark:text-stone-400 mb-6">Enter your phone number to access your dashboard.</p>
-                    <input type="tel" id="mechanicPhoneInput" class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent focus:ring-1 focus:ring-bhat-ink dark:focus:ring-bhat-darkAccent outline-none transition-all mb-6" placeholder="e.g. 99069906xx">
-                    <button onclick="loginMechanic()" class="w-full ripple btn-dark bg-bhat-ink dark:bg-bhat-darkAccent text-white dark:text-bhat-ink font-medium text-sm p-4 rounded-2xl hover:bg-stone-800 dark:hover:bg-[#00e6b8] transition-all shadow-md">
-                        Login
-                    </button>
-                </div>
-
-                <div id="dashboardContent" class="hidden space-y-8" data-aos="fade-up">
-                    <!-- Dashboard content injected via JS -->
-                </div>
-            </div>
-        </section>
-
-        <!-- Creator Page -->
-        <section id="creator" class="page">
-            <div class="max-w-2xl mx-auto px-6 py-12 relative">
-                <!-- Local reactive elements -->
-                <i class="fas fa-laptop-code absolute text-stone-200/40 text-6xl top-10 left-0 floating-tool" data-speed="1.5"></i>
-                <i class="fas fa-paint-brush absolute text-stone-200/30 text-5xl bottom-20 right-0 floating-tool" data-speed="-1.5"></i>
-                <i class="fas fa-code-branch absolute text-stone-200/40 text-7xl top-1/2 left-[-10%] floating-tool" data-speed="2.5"></i>
-                <i class="fas fa-terminal absolute text-stone-200/30 text-6xl top-1/3 right-[-5%] floating-tool" data-speed="-2"></i>
-                
-                <div class="text-center mb-12" data-aos="fade-down">
-                    <h2 class="text-3xl font-serif font-medium mb-3 text-bhat-ink">Creator <span class="italic text-stone-400">Wall</span></h2>
-                    <p class="text-stone-500 text-sm">Meet the architect behind the network.</p>
-                </div>
-
-                <div class="bg-white border border-stone-100 shadow-[0_8px_30px_rgba(0,0,0,0.03)] p-10 rounded-[2rem] text-center relative overflow-hidden" data-aos="fade-up">
-                    <div class="w-24 h-24 bg-stone-50 border border-stone-200 rounded-full mx-auto mb-5 flex items-center justify-center text-3xl text-bhat-ink shadow-inner">
-                        <i class="fas fa-user-ninja"></i>
-                    </div>
-                    <h3 class="text-3xl font-serif font-bold text-bhat-ink mb-2">BHAT BOYKA</h3>
-                    <p class="text-stone-400 text-xs uppercase tracking-widest font-semibold mb-8">Website Architect</p>
-                    
-                    <a href="https://youtube.com/@aathir_hussain_bhat.?si=XnvDwjGygCX3V6Cx" target="_blank" class="inline-flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-colors px-6 py-3 rounded-full font-medium text-sm shadow-sm group">
-                        <i class="fab fa-youtube text-lg group-hover:scale-110 transition-transform"></i>
-                        Follow on YouTube
-                    </a>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Bottom Navigation (Mobile) -->
-    <nav class="md:hidden fixed bottom-0 w-full bg-white/90 dark:bg-[#121212]/90 backdrop-blur-lg border-t border-stone-200 dark:border-stone-800 z-40 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.02)] transition-colors duration-300">
-        <div class="flex justify-between items-center h-16 px-2">
-            <button onclick="navigate('home')" class="nav-item active flex flex-col items-center justify-center flex-1 h-full text-stone-400 dark:text-stone-500 transition-colors" data-target="home">
-                <i class="fas fa-home text-[1.1rem] mb-1"></i>
-                <span class="text-[9px] font-semibold uppercase tracking-wider">Home</span>
-            </button>
-            <button onclick="navigate('explore')" class="nav-item flex flex-col items-center justify-center flex-1 h-full text-stone-400 dark:text-stone-500 transition-colors" data-target="explore">
-                <i class="fas fa-compass text-[1.1rem] mb-1"></i>
-                <span class="text-[9px] font-semibold uppercase tracking-wider">Explore</span>
-            </button>
-            <button onclick="navigate('add')" class="nav-item flex flex-col items-center justify-center flex-1 h-full text-stone-400 dark:text-stone-500 transition-colors" data-target="add">
-                <i class="fas fa-plus text-[1.1rem] mb-1"></i>
-                <span class="text-[9px] font-semibold uppercase tracking-wider">Add</span>
-            </button>
-            <button onclick="navigate('dashboard')" class="nav-item flex flex-col items-center justify-center flex-1 h-full text-stone-400 dark:text-stone-500 transition-colors" data-target="dashboard">
-                <i class="fas fa-tachometer-alt text-[1.1rem] mb-1"></i>
-                <span class="text-[9px] font-semibold uppercase tracking-wider">Dash</span>
-            </button>
-            <button onclick="navigate('profile')" class="nav-item flex flex-col items-center justify-center flex-1 h-full text-stone-400 dark:text-stone-500 transition-colors" data-target="profile">
-                <i class="fas fa-user text-[1.1rem] mb-1"></i>
-                <span class="text-[9px] font-semibold uppercase tracking-wider">Profile</span>
-            </button>
-            <button onclick="navigate('creator')" class="nav-item flex flex-col items-center justify-center flex-1 h-full text-stone-400 dark:text-stone-500 transition-colors" data-target="creator">
-                <i class="fas fa-code text-[1.1rem] mb-1"></i>
-                <span class="text-[9px] font-semibold uppercase tracking-wider">Creator</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Edit Profile Modal -->
-    <div id="editProfileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-bhat-ink/40 dark:bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white dark:bg-bhat-darkSurface p-10 rounded-[2rem] max-w-sm w-full mx-6 text-center transform scale-95 transition-transform duration-300 shadow-2xl" id="editProfileContent">
-            <div class="w-16 h-16 bg-stone-50 dark:bg-stone-800 text-stone-500 dark:text-stone-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-6 border border-stone-100 dark:border-stone-700">
-                <i class="fas fa-user-edit"></i>
-            </div>
-            <h3 class="text-2xl font-serif font-medium mb-4 text-bhat-ink dark:text-bhat-darkInk">Edit Profile</h3>
-            <input type="text" id="editNameInput" onkeypress="if(event.key === 'Enter') saveProfileName()" class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent focus:ring-1 focus:ring-bhat-ink dark:focus:ring-bhat-darkAccent outline-none transition-all mb-8" placeholder="Enter your name">
-            <div class="flex gap-3">
-                <button onclick="closeEditProfileModal()" class="flex-1 bg-white dark:bg-bhat-darkSurface border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400 font-medium text-sm py-3.5 rounded-full hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors shadow-sm">
-                    Cancel
-                </button>
-                <button onclick="saveProfileName()" class="flex-1 bg-bhat-ink dark:bg-bhat-darkAccent text-white dark:text-bhat-ink font-medium text-sm py-3.5 rounded-full hover:bg-stone-800 dark:hover:bg-[#00e6b8] transition-colors shadow-md">
-                    Save
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Success Modal -->
-    <div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center bg-bhat-ink/40 dark:bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white dark:bg-bhat-darkSurface p-10 rounded-[2rem] max-w-sm w-full mx-6 text-center transform scale-95 transition-transform duration-300 shadow-2xl" id="modalContent">
-            <div class="w-16 h-16 bg-green-50 dark:bg-green-900/30 text-green-500 dark:text-green-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-6 border border-green-100 dark:border-green-800">
-                <i class="fas fa-check"></i>
-            </div>
-            <h3 class="text-2xl font-serif font-medium mb-2 text-bhat-ink dark:text-bhat-darkInk">Success</h3>
-            <p class="text-stone-500 dark:text-stone-400 text-sm mb-8 font-light" id="modalMessage">Workshop registered successfully.</p>
-            <button onclick="closeModal()" class="w-full bg-bhat-ink dark:bg-bhat-darkAccent text-white dark:text-bhat-ink font-medium text-sm py-3.5 rounded-full hover:bg-stone-800 dark:hover:bg-[#00e6b8] transition-colors shadow-md">
-                Continue
-            </button>
-        </div>
-    </div>
-
-    <!-- Confirm Modal -->
-    <div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-bhat-ink/40 dark:bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white dark:bg-bhat-darkSurface p-10 rounded-[2rem] max-w-sm w-full mx-6 text-center transform scale-95 transition-transform duration-300 shadow-2xl" id="confirmModalContent">
-            <div class="w-16 h-16 bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-6 border border-red-100 dark:border-red-800">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <h3 class="text-2xl font-serif font-medium mb-2 text-bhat-ink dark:text-bhat-darkInk">Confirm Deletion</h3>
-            <p class="text-stone-500 dark:text-stone-400 text-sm mb-8 font-light" id="confirmModalMessage">Are you sure you want to delete this workshop?</p>
-            <div class="flex gap-3">
-                <button onclick="closeConfirmModal()" class="flex-1 bg-stone-100 dark:bg-stone-800 text-bhat-ink dark:text-bhat-darkInk font-medium text-sm py-3.5 rounded-full hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors shadow-sm">
-                    Cancel
-                </button>
-                <button id="confirmActionBtn" class="flex-1 bg-red-500 text-white font-medium text-sm py-3.5 rounded-full hover:bg-red-600 transition-colors shadow-md">
-                    Delete
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Workshop Detail Modal -->
-    <div id="workshopDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-bhat-ink/60 dark:bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300 p-4">
-        <div class="bg-white dark:bg-bhat-darkSurface rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300 shadow-2xl relative" id="workshopDetailContent">
-            <button onclick="closeWorkshopDetailModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/50 dark:bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-bhat-ink dark:text-white z-10 hover:bg-white dark:hover:bg-black transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
-            <div id="workshopDetailBody">
-                <!-- Content injected via JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Workshop Modal -->
-    <div id="editWorkshopModal" class="fixed inset-0 z-50 flex items-center justify-center bg-bhat-ink/60 dark:bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300 p-4">
-        <div class="bg-white dark:bg-bhat-darkSurface p-8 md:p-10 rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300 shadow-2xl relative" id="editWorkshopContent">
-            <button onclick="closeEditWorkshopModal()" class="absolute top-4 right-4 w-8 h-8 text-stone-400 hover:text-bhat-ink dark:hover:text-white transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
-            <h3 class="text-2xl font-serif font-medium mb-6 text-bhat-ink dark:text-bhat-darkInk">Edit Workshop Details</h3>
-            
-            <form id="editWorkshopForm" class="space-y-6">
-                <input type="hidden" id="editWId">
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Workshop Name</label>
-                        <input type="text" id="editWName" required class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Owner Name</label>
-                        <input type="text" id="editWOwner" required class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all">
-                    </div>
-                </div>
-                
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Phone Number</label>
-                        <input type="tel" id="editWPhone" required class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all" readonly title="Phone number cannot be changed">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Location</label>
-                        <input type="text" id="editWLocation" required class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all">
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Services Offered (comma separated)</label>
-                    <textarea id="editWServices" required rows="3" class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all resize-none"></textarea>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Call Link (Optional)</label>
-                        <input type="text" id="editWLinkCall" class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all" placeholder="e.g. tel:+919906584655">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Directions Link (Optional)</label>
-                        <input type="text" id="editWLinkDirections" class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all" placeholder="e.g. https://g.co/kgs/...">
-                    </div>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">YouTube Link (Optional)</label>
-                        <input type="text" id="editWLinkYoutube" class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all" placeholder="e.g. https://youtube.com/...">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Instagram Link (Optional)</label>
-                        <input type="text" id="editWLinkInstagram" class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all" placeholder="e.g. https://instagram.com/...">
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full ripple btn-dark bg-bhat-ink dark:bg-bhat-darkAccent text-white dark:text-bhat-ink font-medium text-sm p-4 rounded-2xl hover:bg-stone-800 dark:hover:bg-[#00e6b8] transition-all shadow-md mt-4">
-                    Save Changes
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Booking Modal -->
-    <div id="bookingModal" class="fixed inset-0 z-50 flex items-center justify-center bg-bhat-ink/60 dark:bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300 p-4">
-        <div class="bg-white dark:bg-bhat-darkSurface p-8 md:p-10 rounded-[2rem] max-w-md w-full transform scale-95 transition-transform duration-300 shadow-2xl relative" id="bookingContent">
-            <button onclick="closeBookingModal()" class="absolute top-4 right-4 w-8 h-8 text-stone-400 hover:text-bhat-ink dark:hover:text-white transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
-            <h3 class="text-2xl font-serif font-medium mb-2 text-bhat-ink dark:text-bhat-darkInk">Book Appointment</h3>
-            <p class="text-stone-500 dark:text-stone-400 text-sm mb-6 font-light" id="bookingWorkshopName"></p>
-            
-            <form id="bookingForm" class="space-y-4">
-                <input type="hidden" id="bookingWorkshopId">
-                <div class="space-y-1">
-                    <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Date</label>
-                    <input type="date" id="bookingDate" required class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Time</label>
-                    <input type="time" id="bookingTime" required class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider pl-1">Vehicle Details (Optional)</label>
-                    <input type="text" id="bookingVehicle" class="w-full bg-stone-50 dark:bg-[#121212] border border-stone-200 dark:border-stone-700 rounded-2xl p-3.5 text-bhat-ink dark:text-bhat-darkInk text-sm focus:border-bhat-ink dark:focus:border-bhat-darkAccent outline-none transition-all" placeholder="e.g. Royal Enfield Classic 350">
-                </div>
-                <button type="submit" class="w-full ripple btn-dark bg-bhat-ink dark:bg-bhat-darkAccent text-white dark:text-bhat-ink font-medium text-sm p-4 rounded-2xl hover:bg-stone-800 dark:hover:bg-[#00e6b8] transition-all shadow-md mt-4">
-                    Confirm Booking
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        let currentUser = localStorage.getItem('bhat_user') || 'Guest User';
-        let followedWorkshops = JSON.parse(localStorage.getItem('bhat_followed')) || [];
-        let isDarkMode = localStorage.getItem('bhat_dark_mode') === 'true';
-        let mechanicLoggedIn = localStorage.getItem('bhat_mechanic_logged_in') === 'true';
-        let mechanicPhone = localStorage.getItem('bhat_mechanic_phone') || '';
-        let bookings = JSON.parse(localStorage.getItem('bhat_bookings')) || [];
-        let profilePhoto = localStorage.getItem('bhat_profile_photo');
-
-        // Apply dark mode initially
-        if (isDarkMode) {
-            document.documentElement.classList.add('dark');
+        /* Cropper.js Overrides */
+        .cropper-view-box, .cropper-face {
+            border-radius: 0px;
         }
-
-        function toggleDarkMode() {
-            isDarkMode = !isDarkMode;
-            localStorage.setItem('bhat_dark_mode', isDarkMode);
-            if (isDarkMode) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
+        .cropper-line {
+            background-color: var(--accent);
+            opacity: 0.8;
+        }
+        .cropper-point {
+            background-color: var(--accent);
+            width: 6px;
+            height: 6px;
+            opacity: 1;
+        }
+        .cropper-point.point-se {
+            width: 8px;
+            height: 8px;
+        }
+        .cropper-center {
+            display: none;
+        }
+        .cropper-bg {
+            background-image: none;
+            background-color: var(--primary-bg);
+        }
+        .cropper-modal {
+            background-color: var(--primary-bg);
+            opacity: 0.9;
+        }
+        .cropper-dashed {
+            border-color: rgba(128, 128, 128, 0.3);
         }
         
-        const defaultWorkshopsDB = [
-            { id: 'aashaq-bike-point', name: 'Aashaq Bike Point', location: 'Villagam', phone: '9906584655', services: ['Repair', 'Service', 'Parts'], rating: 5.0, image: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=500&auto=format&fit=crop', links: { call: '+919906584655', directions: 'https://g.co/kgs/jH8xfRi', youtube: 'https://youtube.com/@aashaqbikepoint?si=XMJbbCSTaWaL7yU8', instagram: 'https://www.instagram.com/aashaq_bike_point_villagam' } },
-            { id: 'ws-2', name: 'Royal Enfield Masters', location: 'Srinagar', phone: '9876543210', services: ['Engine Rebuild', 'Customization'], rating: 4.8, image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=500&auto=format&fit=crop' },
-            { id: 'ws-3', name: 'Valley Auto Care', location: 'Anantnag', phone: '9876543211', services: ['Car Wash', 'Detailing', 'Oil Change'], rating: 4.5, image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=500&auto=format&fit=crop' },
-            { id: 'ws-4', name: 'Speed Moto Tech', location: 'Baramulla', phone: '9876543212', services: ['Diagnostics', 'Electrical'], rating: 4.7, image: 'https://images.unsplash.com/photo-1625047509168-a71c6f959828?q=80&w=500&auto=format&fit=crop' },
-        ];
-
-        let workshopsDB = JSON.parse(localStorage.getItem('bhat_workshops_db')) || defaultWorkshopsDB;
-        const userWorkshops = JSON.parse(localStorage.getItem('bhat_user_workshops')) || [];
-        let allWorkshops = [...workshopsDB, ...userWorkshops];
-
-        function updateFeaturedWorkshopDOM() {
-            const featured = allWorkshops.find(w => w.id === 'aashaq-bike-point');
-            const featuredSection = document.getElementById('featured-section');
-            if (featured) {
-                if (featuredSection) featuredSection.classList.remove('hidden');
-                const nameEl = document.getElementById('featured-name');
-                const locationEl = document.getElementById('featured-location');
-                const phoneEl = document.getElementById('featured-phone');
-                const imageEl = document.getElementById('featured-image');
-                const callEl = document.getElementById('featured-link-call');
-                const directionsEl = document.getElementById('featured-link-directions');
-                const youtubeEl = document.getElementById('featured-link-youtube');
-                const instagramEl = document.getElementById('featured-link-instagram');
-                
-                if (nameEl) nameEl.textContent = featured.name;
-                if (locationEl) locationEl.textContent = featured.location;
-                if (phoneEl) phoneEl.textContent = featured.phone;
-                if (imageEl) imageEl.src = featured.image;
-                
-                if (featured.links) {
-                    if (callEl) callEl.href = featured.links.call || `tel:${featured.phone}`;
-                    if (directionsEl) directionsEl.href = featured.links.directions || '#';
-                    if (youtubeEl) youtubeEl.href = featured.links.youtube || '#';
-                    if (instagramEl) instagramEl.href = featured.links.instagram || '#';
-                }
-            } else {
-                if (featuredSection) featuredSection.classList.add('hidden');
-            }
+        #cropperContainer.hide-guides .cropper-dashed {
+            display: none !important;
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            updateFeaturedWorkshopDOM();
-            AOS.init({
-                duration: 800,
-                once: true,
-                offset: 30
-            });
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
 
-            setTimeout(() => {
-                const loader = document.getElementById('loader');
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
+        /* Header */
+        header {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        header h1 { 
+            font-size: 1.1rem; 
+            font-weight: 600; 
+            letter-spacing: -0.02em;
+            color: var(--primary-text);
+        }
+
+        .icon-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--primary-text);
+            font-size: 1rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .icon-btn:hover {
+            background: var(--primary-bg);
+            border-color: var(--secondary-text);
+            transform: scale(1.05);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Main Preview Area */
+        main {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 1rem calc(var(--nav-h) + 10px) 1rem;
+            overflow: hidden;
+            transition: padding 0.4s ease;
+        }
+
+        body.panel-open main {
+            padding-bottom: calc(var(--panel-h) + var(--nav-h) + 20px);
+        }
+
+        body.panel-open #canvas-frame {
+            max-height: 50vh;
+        }
+
+        #empty-state {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            border-radius: var(--radius-panel);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px dashed var(--border);
+            background: var(--surface);
+            max-width: 280px;
+            width: 100%;
+            box-shadow: var(--shadow-md);
+        }
+        
+        #empty-state:hover {
+            border-color: var(--secondary-text);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        #empty-state:active { transform: scale(0.98); }
+        #empty-state .icon { 
+            font-size: 2rem; 
+            margin-bottom: 0.75rem; 
+            display: block; 
+            color: var(--secondary-text);
+        }
+        #empty-state h3 { 
+            font-size: 1rem; 
+            font-weight: 600; 
+            margin-bottom: 0.25rem; 
+            color: var(--primary-text);
+        }
+        #empty-state p { 
+            color: var(--secondary-text); 
+            font-size: 0.8rem; 
+            font-weight: 400; 
+        }
+
+        #cropperContainer {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 1rem 6rem 1rem;
+        }
+        
+        #cropperContainer.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #canvas-frame {
+            position: relative;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            max-width: 100%;
+            max-height: 75vh;
+            padding: calc(var(--frame-padding) * 1px);
+            background: var(--frame-color);
+            border-radius: calc(var(--frame-radius) * 1px);
+            box-shadow: 
+                0 calc(var(--frame-shadow) * 0.5px) calc(var(--frame-shadow) * 1px) rgba(0,0,0,calc(0.1 + var(--frame-shadow) * 0.005)),
+                0 calc(var(--frame-shadow) * 2px) calc(var(--frame-shadow) * 4px) rgba(0,0,0,calc(0.1 + var(--frame-shadow) * 0.005));
+        }
+        
+        #canvas-frame.visible { 
+            display: flex; 
+            opacity: 1; 
+        }
+
+        #canvas-frame canvas {
+            border-radius: calc(var(--frame-radius) * 0.5px);
+            display: block;
+            max-width: 100%;
+            max-height: 70vh;
+        }
+
+        /* Floating Bottom Navigation */
+        nav {
+            position: fixed;
+            bottom: 12px; 
+            left: 12px; 
+            right: 12px;
+            height: var(--nav-h);
+            display: flex;
+            z-index: 100;
+            border-radius: 100px;
+            padding: 0 6px;
+            margin-bottom: env(safe-area-inset-bottom);
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none; 
+            border: none;
+            color: var(--secondary-text);
+            font-size: 0.55rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 100px;
+            margin: 4px 2px;
+            gap: 2px;
+        }
+        
+        .nav-btn .icon { 
+            font-size: 1rem; 
+            transition: all 0.2s ease; 
+        }
+        
+        .nav-btn:hover {
+            color: var(--primary-text);
+        }
+        
+        .nav-btn.active { 
+            color: var(--accent); 
+            background: rgba(128, 128, 128, 0.1);
+            font-weight: 600;
+        }
+        
+        .nav-btn.active .icon { 
+            transform: scale(1.1); 
+        }
+
+        /* Floating Panels */
+        #panels {
+            position: fixed;
+            bottom: calc(var(--nav-h) + 20px + env(safe-area-inset-bottom)); 
+            left: 12px; 
+            right: 12px;
+            border-radius: var(--radius-panel);
+            transform: translateY(120%) scale(0.95);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 90;
+            height: var(--panel-h);
+            min-height: 200px;
+            max-height: 280px;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        #panels.active { 
+            transform: translateY(0) scale(1); 
+            opacity: 1; 
+            pointer-events: auto;
+        }
+
+        .panel-handle {
+            width: 100%;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .panel-handle::before {
+            content: '';
+            width: 32px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .panel { 
+            display: none; 
+            padding: 0.5rem 1rem 1rem 1rem; 
+            overflow-y: auto; 
+            flex: 1; 
+            scrollbar-width: none;
+        }
+        .panel::-webkit-scrollbar { display: none; }
+        
+        .panel.active { 
+            display: block; 
+            animation: fadeScale 0.3s ease; 
+        }
+        
+        @keyframes fadeScale { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .panel-title { 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            margin-bottom: 0.75rem; 
+            color: var(--primary-text); 
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .panel-title::before, .panel-title::after {
+            content: '';
+            height: 1px;
+            flex: 1;
+            background: var(--border);
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--surface);
+            color: var(--primary-text);
+            border: 1px solid var(--border);
+            padding: 10px 16px;
+            border-radius: var(--radius-btn);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px;
+            width: 100%; 
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn:hover {
+            background: var(--primary-bg);
+            border-color: var(--secondary-text);
+        }
+        
+        .btn:active { transform: scale(0.98); }
+        
+        .btn-primary { 
+            background: var(--accent); 
+            color: var(--surface); 
+            border: none; 
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover { 
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .row { display: flex; gap: 0.75rem; }
+
+        /* Sliders */
+        .slider-group { margin-bottom: 0.75rem; }
+        .slider-header { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 0.4rem; 
+            font-size: 0.75rem; 
+            font-weight: 500;
+            color: var(--primary-text);
+        }
+        .slider-val { 
+            color: var(--secondary-text); 
+            font-variant-numeric: tabular-nums; 
+            font-weight: 400; 
+            font-size: 0.7rem; 
+        }
+        
+        input[type=range] { 
+            -webkit-appearance: none; 
+            width: 100%; 
+            height: 3px; 
+            background: var(--border);
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        input[type=range] {
+            background: linear-gradient(to right, var(--accent) var(--p, 50%), var(--border) var(--p, 50%));
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; 
+            height: 14px; 
+            width: 14px; 
+            border-radius: 50%;
+            background: var(--accent); 
+            cursor: pointer; 
+            border: 2px solid var(--surface);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease;
+        }
+        
+        input[type=range]:active::-webkit-slider-thumb {
+            transform: scale(1.2);
+        }
+
+        /* Presets */
+        .presets-scroll { 
+            display: flex; 
+            overflow-x: auto; 
+            gap: 0.75rem; 
+            padding-bottom: 0.5rem; 
+            scrollbar-width: none; 
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+        .presets-scroll::-webkit-scrollbar { display: none; }
+        
+        .preset-card {
+            min-width: 72px; 
+            height: 90px; 
+            border-radius: var(--radius-card);
+            background-color: var(--primary-bg); 
+            background-size: cover;
+            background-position: center;
+            border: 1px solid var(--border);
+            display: flex; 
+            align-items: flex-end; 
+            justify-content: center;
+            padding: 0.6rem 0.4rem; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        .preset-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.7));
+            z-index: 1;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        
+        .preset-card span { 
+            font-size: 0.65rem; 
+            font-weight: 600; 
+            color: #ffffff;
+            line-height: 1.1;
+            text-align: center;
+            z-index: 2;
+            position: relative;
+            letter-spacing: 0.3px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        
+        .preset-card:hover { 
+            border-color: var(--secondary-text);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .preset-card:active { transform: scale(0.95); }
+        
+        .preset-card.active { 
+            border-color: var(--accent);
+            border-width: 2px;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Frame Options */
+        .frame-options {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .frame-option {
+            min-width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: var(--primary-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .frame-option:hover {
+            border-color: var(--secondary-text);
+            transform: translateY(-2px);
+        }
+
+        .frame-option.active {
+            border-color: var(--accent);
+            background: rgba(128, 128, 128, 0.05);
+        }
+
+        .frame-preview {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #e5e5e5 0%, #f5f5f5 100%);
+            position: relative;
+        }
+
+        .dark-mode .frame-preview {
+            background: linear-gradient(135deg, #262626 0%, #404040 100%);
+        }
+
+        .frame-preview::after {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            background: var(--surface);
+        }
+
+        .frame-option[data-frame="none"] .frame-preview {
+            background: transparent;
+            border: 2px dashed var(--border);
+        }
+
+        .frame-option[data-frame="none"] .frame-preview::after {
+            display: none;
+        }
+
+        .frame-option[data-frame="rounded"] .frame-preview {
+            border-radius: 8px;
+        }
+
+        .frame-option[data-frame="rounded"] .frame-preview::after {
+            border-radius: 4px;
+        }
+
+        .frame-option[data-frame="circle"] .frame-preview {
+            border-radius: 50%;
+        }
+
+        .frame-option[data-frame="circle"] .frame-preview::after {
+            border-radius: 50%;
+        }
+
+        .frame-option[data-frame="polaroid"] .frame-preview {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .frame-option[data-frame="polaroid"] .frame-preview::after {
+            inset: 4px 4px 12px 4px;
+        }
+
+        .frame-option[data-frame="shadow"] .frame-preview {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .frame-option[data-frame="neon"] .frame-preview {
+            box-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
+        }
+
+        .frame-option span {
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: var(--secondary-text);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .frame-option.active span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .frame-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1rem;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .color-picker-wrapper label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--primary-text);
+            min-width: 60px;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: 1px solid var(--border);
+            width: 40px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            background: none;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 2px;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border-radius: 4px;
+            border: none;
+        }
+
+        /* Creator Wall - BHAT BOYKA */
+        .creator-wall {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0.5rem 1rem;
+            height: 100%;
+            text-align: center;
+            overflow-y: auto;
+        }
+
+        .creator-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #404040 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+            position: relative;
+            box-shadow: var(--shadow-lg);
+            flex-shrink: 0;
+        }
+
+        .dark-mode .creator-avatar {
+            background: linear-gradient(135deg, #ffffff 0%, #a3a3a3 100%);
+        }
+
+        .creator-avatar::before {
+            content: 'B';
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .dark-mode .creator-avatar::before {
+            color: #1a1a1a;
+        }
+
+        .creator-avatar::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--accent), var(--secondary-text));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        .creator-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: var(--primary-text);
+            margin-bottom: 0.15rem;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .creator-title {
+            font-size: 0.65rem;
+            color: var(--secondary-text);
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .creator-socials {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .social-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-text);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .social-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .social-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .creator-quote {
+            font-size: 0.75rem;
+            color: var(--secondary-text);
+            font-style: italic;
+            max-width: 260px;
+            line-height: 1.5;
+            position: relative;
+            padding: 0 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .creator-quote::before,
+        .creator-quote::after {
+            content: '"';
+            position: absolute;
+            font-size: 1.5rem;
+            color: var(--border);
+            font-family: Georgia, serif;
+            line-height: 1;
+        }
+
+        .creator-quote::before {
+            top: -0.25rem;
+            left: 0;
+        }
+
+        .creator-quote::after {
+            bottom: -0.75rem;
+            right: 0;
+        }
+
+        #file-input { display: none; }
+
+        /* Cropper Phase */
+        .cropper-phase #canvas-frame { display: none !important; }
+        .cropper-phase #panels { display: none !important; }
+        .cropper-phase nav { display: none !important; }
+        .cropper-phase main { padding-bottom: 100px; }
+        
+        .editor-phase #cropperContainer { display: none !important; }
+        .editor-phase #cropperFooter { display: none !important; }
+
+        /* Cropper Footer */
+        #cropperFooter {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 0 1rem;
+        }
+
+        .cropper-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--secondary-text);
+            font-size: 0.65rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: none;
+            border: none;
+        }
+
+        .cropper-btn:hover {
+            color: var(--primary-text);
+            background: var(--primary-bg);
+        }
+
+        .cropper-btn.primary {
+            background: var(--accent);
+            color: var(--surface);
+            padding: 10px 20px;
+            border-radius: 100px;
+            font-weight: 600;
+        }
+
+        .cropper-btn.primary:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        /* Aspect Ratio Presets */
+        .ratio-preset {
+            min-width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--secondary-text);
+            flex-shrink: 0;
+        }
+
+        .ratio-preset:hover {
+            border-color: var(--secondary-text);
+            color: var(--primary-text);
+            background: var(--primary-bg);
+        }
+
+        .ratio-preset.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(128, 128, 128, 0.1);
+            font-weight: 600;
+        }
+
+        .ratio-preset .ratio-icon {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 2px;
+        }
+
+        .ratio-preset[data-ratio="NaN"] .ratio-icon {
+            border-style: dashed;
+        }
+
+        .ratio-preset[data-ratio="1"] .ratio-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .ratio-preset[data-ratio="1.3333333333333333"] .ratio-icon {
+            width: 20px;
+            height: 14px;
+        }
+
+        .ratio-preset[data-ratio="0.75"] .ratio-icon {
+            width: 14px;
+            height: 20px;
+        }
+
+        .ratio-preset[data-ratio="1.7777777777777777"] .ratio-icon {
+            width: 22px;
+            height: 12px;
+        }
+
+        .ratio-preset[data-ratio="0.5625"] .ratio-icon {
+            width: 12px;
+            height: 22px;
+        }
+
+        /* Two column layout for sliders */
+        .sliders-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1rem;
+        }
+
+        @media (max-width: 380px) {
+            .sliders-grid, .frame-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .preset-card, .frame-option {
+                min-width: 64px;
+                height: 80px;
+            }
+
+            .creator-socials {
+                gap: 0.5rem;
+            }
+
+            .social-btn {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body class="cropper-phase">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="overlay active">
+        <div class="spinner"></div>
+        <div class="overlay-text">Velora</div>
+    </div>
+
+    <!-- Export Overlay -->
+    <div id="export-overlay" class="overlay">
+        <div class="spinner"></div>
+        <div class="overlay-text">Exporting...</div>
+    </div>
+
+    <header>
+        <h1>Velora</h1>
+        <button id="theme-toggle" class="icon-btn" title="Toggle theme">
+            <i data-lucide="moon" class="w-5 h-5" id="theme-icon"></i>
+        </button>
+    </header>
+
+    <main id="main">
+        <!-- Empty State -->
+        <div id="empty-state">
+            <span class="icon">
+                <i data-lucide="image-plus" class="w-8 h-8 mx-auto mb-2"></i>
+            </span>
+            <h3>Select a photo</h3>
+            <p>Tap to upload and start editing</p>
+        </div>
+
+        <!-- Cropper Container -->
+        <div id="cropperContainer">
+            <img id="imageToCrop" src="" alt="Workspace" class="max-w-full max-h-full object-contain">
+        </div>
+
+        <!-- Editor Canvas with Frame -->
+        <div id="canvas-frame">
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <input type="file" id="file-input" accept="image/*">
+    </main>
+
+    <!-- Cropper Footer -->
+    <footer id="cropperFooter">
+        <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar">
+            <button class="ratio-preset active" data-ratio="NaN">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase tracking-wide">Free</span>
+            </button>
+            <button class="ratio-preset" data-ratio="1">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase tracking-wide">1:1</span>
+            </button>
+            <button class="ratio-preset" data-ratio="1.3333333333333333">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase tracking-wide">4:3</span>
+            </button>
+            <button class="ratio-preset" data-ratio="0.75">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase tracking-wide">3:4</span>
+            </button>
+            <button class="ratio-preset" data-ratio="1.7777777777777777">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase tracking-wide">16:9</span>
+            </button>
+            <button class="ratio-preset" data-ratio="0.5625">
+                <div class="ratio-icon"></div>
+                <span class="text-[9px] uppercase tracking-wide">9:16</span>
+            </button>
+        </div>
+        
+        <div class="flex items-center gap-2 ml-2 pl-2 border-l border-[var(--border)]">
+            <button class="cropper-btn" id="btnRotateL">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                <span>Rotate</span>
+            </button>
+            <button class="cropper-btn" id="btnFlipH">
+                <i data-lucide="flip-horizontal" class="w-4 h-4"></i>
+                <span>Flip</span>
+            </button>
+            <button class="cropper-btn primary" id="btnConfirmCrop">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>Apply</span>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Editor Panels -->
+    <div id="panels">
+        <!-- Drag handle to close -->
+        <div class="panel-handle" id="panelHandle"></div>
+        
+        <!-- Edit -->
+        <div class="panel" id="p-edit">
+            <div class="panel-title">File</div>
+            <button class="btn" id="btn-upload">
+                <i data-lucide="folder-open" class="w-4 h-4"></i> Open New Image
+            </button>
+            <div class="row">
+                <button class="btn" id="btn-compare">
+                    <i data-lucide="scan" class="w-4 h-4"></i> Compare
+                </button>
+                <button class="btn" id="btn-reset">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+                </button>
+            </div>
+            <button class="btn btn-primary" id="btn-export">
+                <i data-lucide="download" class="w-4 h-4"></i> Export Image
+            </button>
+        </div>
+
+        <!-- Looks -->
+        <div class="panel" id="p-looks">
+            <div class="panel-title">Presets</div>
+            <div class="presets-scroll" id="presets-container"></div>
+        </div>
+
+        <!-- Control -->
+        <div class="panel" id="p-control">
+            <div class="panel-title">Adjust</div>
+            <div class="sliders-grid" id="sliders-control"></div>
+        </div>
+
+        <!-- FX -->
+        <div class="panel" id="p-fx">
+            <div class="panel-title">Effects</div>
+            <div class="sliders-grid" id="sliders-fx"></div>
+        </div>
+
+        <!-- Frames -->
+        <div class="panel" id="p-frames">
+            <div class="panel-title">Frames</div>
+            <div class="frame-options" id="frame-options">
+                <div class="frame-option active" data-frame="none">
+                    <div class="frame-preview"></div>
+                    <span>None</span>
+                </div>
+                <div class="frame-option" data-frame="rounded">
+                    <div class="frame-preview"></div>
+                    <span>Rounded</span>
+                </div>
+                <div class="frame-option" data-frame="circle">
+                    <div class="frame-preview"></div>
+                    <span>Circle</span>
+                </div>
+                <div class="frame-option" data-frame="polaroid">
+                    <div class="frame-preview"></div>
+                    <span>Polaroid</span>
+                </div>
+                <div class="frame-option" data-frame="shadow">
+                    <div class="frame-preview"></div>
+                    <span>Shadow</span>
+                </div>
+            </div>
+            <div class="frame-controls">
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Padding</span>
+                        <span class="slider-val" id="val-frame-padding">0</span>
+                    </div>
+                    <input type="range" id="sl-frame-padding" min="0" max="50" step="1" value="0">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Radius</span>
+                        <span class="slider-val" id="val-frame-radius">8</span>
+                    </div>
+                    <input type="range" id="sl-frame-radius" min="0" max="50" step="1" value="8">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Shadow</span>
+                        <span class="slider-val" id="val-frame-shadow">0</span>
+                    </div>
+                    <input type="range" id="sl-frame-shadow" min="0" max="50" step="1" value="0">
+                </div>
+                <div class="color-picker-wrapper">
+                    <label>Color</label>
+                    <input type="color" id="frame-color" value="#ffffff">
+                </div>
+            </div>
+        </div>
+
+        <!-- Creator Wall - BHAT BOYKA -->
+        <div class="panel" id="p-creator">
+            <div class="creator-wall">
+                <div class="creator-avatar animate-float"></div>
+                <div class="creator-name">BHAT BOYKA</div>
+                <div class="creator-title">Creator & Designer</div>
                 
-                gsap.from(".hero-content > *", {
-                    y: 20,
-                    opacity: 0,
-                    duration: 1,
-                    stagger: 0.15,
-                    ease: "power2.out"
-                });
+                <div class="creator-socials">
+                    <a href="https://youtube.com/@aathir_hussain_bhat.?si=3bGzGEYPfPF0myUx" target="_blank" class="social-btn" title="YouTube">
+                        <i data-lucide="youtube" class="w-5 h-5"></i>
+                    </a>
+                    <a href="https://share.google/05cqDTY08eQEp74MH" target="_blank" class="social-btn" title="Instagram">
+                        <i data-lucide="instagram" class="w-5 h-5"></i>
+                    </a>
+                    <a href="https://share.google/jWLCjCdUvzcd360cx" target="_blank" class="social-btn" title="Facebook">
+                        <i data-lucide="facebook" class="w-5 h-5"></i>
+                    </a>
+                    <a href="https://github.com/Aathir-Hussain-Bhat" target="_blank" class="social-btn" title="GitHub">
+                        <i data-lucide="github" class="w-5 h-5"></i>
+                    </a>
+                    <a href="https://x.com/bhatboyka" target="_blank" class="social-btn" title="X (Twitter)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="creator-quote">
+                    Design is not just what it looks like. Design is how it works.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Editor Navigation -->
+    <nav>
+        <button class="nav-btn" data-target="edit">
+            <span class="icon"><i data-lucide="folder-open" class="w-4 h-4"></i></span>
+            <span>File</span>
+        </button>
+        <button class="nav-btn" data-target="looks">
+            <span class="icon"><i data-lucide="sparkles" class="w-4 h-4"></i></span>
+            <span>Looks</span>
+        </button>
+        <button class="nav-btn" data-target="control">
+            <span class="icon"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i></span>
+            <span>Adjust</span>
+        </button>
+        <button class="nav-btn" data-target="fx">
+            <span class="icon"><i data-lucide="wand-2" class="w-4 h-4"></i></span>
+            <span>FX</span>
+        </button>
+        <button class="nav-btn" data-target="frames">
+            <span class="icon"><i data-lucide="frame" class="w-4 h-4"></i></span>
+            <span>Frame</span>
+        </button>
+        <button class="nav-btn" data-target="creator">
+            <span class="icon"><i data-lucide="user" class="w-4 h-4"></i></span>
+            <span>Creator</span>
+        </button>
+    </nav>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --- THEME TOGGLE ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        let isDarkMode = false;
+
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode');
+            
+            // Update frame color based on theme
+            const frameColorInput = document.getElementById('frame-color');
+            if (isDarkMode) {
+                themeIcon.setAttribute('data-lucide', 'sun');
+                frameColorInput.value = '#1a1a1a';
+                document.documentElement.style.setProperty('--frame-color', '#1a1a1a');
+            } else {
+                themeIcon.setAttribute('data-lucide', 'moon');
+                frameColorInput.value = '#ffffff';
+                document.documentElement.style.setProperty('--frame-color', '#ffffff');
+            }
+            lucide.createIcons();
+        });
+
+        // --- INITIAL LOAD ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loading-overlay').classList.remove('active');
             }, 800);
-
-            document.getElementById('profileNameDisplay').textContent = currentUser;
-            
-            if (profilePhoto) {
-                document.getElementById('profileIcon').classList.add('hidden');
-                const img = document.getElementById('profileImage');
-                img.src = profilePhoto;
-                img.classList.remove('hidden');
-            }
-            
-            renderWorkshops(allWorkshops);
-            renderFollowed();
-            updateFollowButtonState('aashaq-bike-point');
-
-            const counters = document.querySelectorAll('.counter');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const target = +entry.target.getAttribute('data-target');
-                        gsap.to(entry.target, {
-                            innerHTML: target,
-                            duration: 2,
-                            snap: { innerHTML: 1 },
-                            ease: "power1.inOut",
-                            onUpdate: function() {
-                                entry.target.innerHTML = Math.round(this.targets()[0].innerHTML) + (target > 1000 ? '+' : '');
-                            }
-                        });
-                        observer.unobserve(entry.target);
-                    }
-                });
-            });
-            counters.forEach(c => observer.observe(c));
-
-            document.getElementById('searchInput').addEventListener('input', (e) => {
-                const term = e.target.value.toLowerCase();
-                const filtered = allWorkshops.filter(w => 
-                    w.name.toLowerCase().includes(term) || 
-                    w.location.toLowerCase().includes(term) ||
-                    w.services.some(s => s.toLowerCase().includes(term))
-                );
-                renderWorkshops(filtered);
-            });
-
-            document.getElementById('addWorkshopForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const phoneVal = document.getElementById('wPhone').value.trim();
-                
-                const existing = allWorkshops.find(w => w.phone.replace(/\s/g, '') === phoneVal.replace(/\s/g, ''));
-                if (existing) {
-                    alert("A workshop with this phone number is already registered. Please use the dashboard to manage it.");
-                    return;
-                }
-
-                const newWorkshop = {
-                    id: 'user-ws-' + Date.now(),
-                    name: document.getElementById('wName').value,
-                    owner: document.getElementById('wOwner').value,
-                    phone: document.getElementById('wPhone').value,
-                    location: document.getElementById('wLocation').value,
-                    services: document.getElementById('wServices').value.split(',').map(s => s.trim()),
-                    rating: 5.0,
-                    image: 'https://images.unsplash.com/photo-1613214149922-f1809c99b414?q=80&w=500&auto=format&fit=crop'
-                };
-
-                userWorkshops.push(newWorkshop);
-                localStorage.setItem('bhat_user_workshops', JSON.stringify(userWorkshops));
-                allWorkshops.push(newWorkshop);
-                
-                e.target.reset();
-                showModal('Workshop registered successfully! It is now live on the network.');
-                renderWorkshops(allWorkshops);
-            });
         });
 
-        function navigate(pageId) {
-            document.querySelectorAll('.page').forEach(p => {
-                p.classList.remove('active');
-                gsap.to(p, {opacity: 0, duration: 0.2});
-            });
-            
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            const activeNavs = document.querySelectorAll(`.nav-item[data-target="${pageId}"]`);
-            activeNavs.forEach(n => n.classList.add('active'));
-
-            const target = document.getElementById(pageId);
-            target.classList.add('active');
-            gsap.fromTo(target, {opacity: 0, y: 10}, {opacity: 1, y: 0, duration: 0.4, ease: "power2.out"});
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            
-            if(pageId === 'profile') renderFollowed();
-            if(pageId === 'explore') renderWorkshops(allWorkshops);
-        }
-
-        function renderWorkshops(workshops) {
-            const grid = document.getElementById('workshopsGrid');
-            grid.innerHTML = '';
-            
-            if(workshops.length === 0) {
-                grid.innerHTML = '<div class="col-span-full text-center text-stone-400 py-10 text-sm">No workshops found.</div>';
-                return;
-            }
-
-            workshops.forEach((w, index) => {
-                const isFollowed = followedWorkshops.includes(w.id);
-                const card = document.createElement('div');
-                card.className = 'bg-white dark:bg-bhat-darkSurface border border-stone-100 dark:border-stone-800 shadow-[0_4px_20px_rgba(0,0,0,0.02)] rounded-3xl overflow-hidden group flex flex-col';
-                card.setAttribute('data-aos', 'fade-up');
-                card.setAttribute('data-aos-delay', (index % 3) * 100);
-                
-                card.innerHTML = `
-                    <div class="h-48 overflow-hidden relative cursor-pointer" onclick="openWorkshopDetail('${w.id}')">
-                        <img src="${w.image}" alt="${w.name}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700">
-                        <div class="absolute top-4 right-4 bg-white/90 dark:bg-black/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 text-bhat-ink dark:text-white shadow-sm">
-                            <i class="fas fa-star text-amber-500"></i> ${w.rating}
-                        </div>
-                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-                            <span class="opacity-0 group-hover:opacity-100 bg-white/90 dark:bg-black/90 text-bhat-ink dark:text-white text-xs font-bold px-3 py-1.5 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-sm">View Details</span>
-                        </div>
-                    </div>
-                    <div class="p-6 flex-1 flex flex-col">
-                        <h3 class="text-xl font-serif font-medium mb-1 truncate text-bhat-ink dark:text-bhat-darkInk">${w.name}</h3>
-                        <p class="text-stone-500 dark:text-stone-400 text-xs mb-5 flex items-center gap-1.5 font-medium"><i class="fas fa-map-marker-alt text-stone-300 dark:text-stone-600"></i> ${w.location}</p>
-                        <div class="flex flex-wrap gap-2 mb-6 flex-1">
-                            ${w.services.slice(0,3).map(s => `<span class="text-[10px] font-medium uppercase tracking-wider bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 px-2 py-1 rounded-md text-stone-500 dark:text-stone-400">${s}</span>`).join('')}
-                            ${w.services.length > 3 ? `<span class="text-[10px] font-medium uppercase tracking-wider bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 px-2 py-1 rounded-md text-stone-500 dark:text-stone-400">+${w.services.length - 3}</span>` : ''}
-                        </div>
-                        <div class="flex gap-2 mb-3">
-                            <a href="tel:${w.phone}" class="flex-1 bg-stone-50 dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 border border-stone-100 dark:border-stone-700 transition-colors text-center py-2.5 rounded-xl text-xs font-semibold text-bhat-ink dark:text-bhat-darkInk">
-                                <i class="fas fa-phone text-stone-400 dark:text-stone-500 mr-1"></i> Call
-                            </a>
-                            <button onclick="toggleFollow('${w.id}')" id="btn-follow-${w.id}" class="w-11 h-11 rounded-xl flex items-center justify-center transition-colors border ${isFollowed ? 'bg-red-50 dark:bg-red-900/30 border-red-100 dark:border-red-800 text-red-500 dark:text-red-400' : 'bg-stone-50 dark:bg-stone-800 border-stone-100 dark:border-stone-700 text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-700'}">
-                                <i class="${isFollowed ? 'fas' : 'far'} fa-heart"></i>
-                            </button>
-                        </div>
-                        <button onclick="openBookingModal('${w.id}')" class="w-full bg-bhat-ink dark:bg-bhat-darkAccent text-white dark:text-bhat-ink hover:bg-stone-800 dark:hover:bg-[#00e6b8] transition-colors py-2.5 rounded-xl text-xs font-semibold shadow-sm">
-                            <i class="far fa-calendar-check mr-1"></i> Book Slot
-                        </button>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function toggleFollow(id) {
-            const index = followedWorkshops.indexOf(id);
-            if (index > -1) {
-                followedWorkshops.splice(index, 1);
-            } else {
-                followedWorkshops.push(id);
-                gsap.fromTo('#btn-follow-' + id, {scale: 1.15}, {scale: 1, duration: 0.3, ease: "back.out(1.7)"});
-            }
-            localStorage.setItem('bhat_followed', JSON.stringify(followedWorkshops));
-            
-            updateFollowButtonState(id);
-            if(document.getElementById('profile').classList.contains('active')) {
-                renderFollowed();
-            }
-            
-            if(document.getElementById('explore').classList.contains('active')) {
-                renderWorkshops(allWorkshops);
-            }
-        }
-
-        function updateFollowButtonState(id) {
-            const btn = document.getElementById('btn-follow-' + id);
-            if (!btn) return;
-            
-            const isFollowed = followedWorkshops.includes(id);
-            
-            if (id === 'aashaq-bike-point') {
-                if (isFollowed) {
-                    btn.innerHTML = '<i class="fas fa-heart"></i> <span>Saved</span>';
-                    btn.className = 'mt-6 w-full ripple bg-red-50 border border-red-100 text-red-500 transition-all p-4 rounded-2xl font-semibold flex items-center justify-center gap-2 text-sm';
-                } else {
-                    btn.innerHTML = '<i class="far fa-heart"></i> <span>Save Workshop</span>';
-                    btn.className = 'mt-6 w-full ripple bg-white border border-stone-200 text-bhat-ink hover:bg-stone-50 transition-all p-4 rounded-2xl font-semibold flex items-center justify-center gap-2 shadow-sm text-sm';
-                }
-            } else {
-                if (isFollowed) {
-                    btn.innerHTML = '<i class="fas fa-heart"></i>';
-                    btn.className = 'w-11 h-11 rounded-xl flex items-center justify-center transition-colors border bg-red-50 border-red-100 text-red-500';
-                } else {
-                    btn.innerHTML = '<i class="far fa-heart"></i>';
-                    btn.className = 'w-11 h-11 rounded-xl flex items-center justify-center transition-colors border bg-stone-50 border-stone-100 text-stone-400 hover:bg-stone-100';
-                }
-            }
-        }
-
-        function renderFollowed() {
-            const list = document.getElementById('followedList');
-            const emptyMsg = document.getElementById('emptyFollowed');
-            
-            Array.from(list.children).forEach(child => {
-                if(child.id !== 'emptyFollowed') child.remove();
-            });
-
-            if (followedWorkshops.length === 0) {
-                emptyMsg.style.display = 'block';
-                return;
-            }
-
-            emptyMsg.style.display = 'none';
-            
-            followedWorkshops.forEach(id => {
-                const workshop = allWorkshops.find(w => w.id === id);
-                if (!workshop) return;
-
-                const item = document.createElement('div');
-                item.className = 'bg-white border border-stone-100 shadow-sm p-3 rounded-2xl flex items-center gap-4';
-                item.innerHTML = `
-                    <img src="${workshop.image}" class="w-14 h-14 rounded-xl object-cover">
-                    <div class="flex-1">
-                        <h4 class="font-serif font-medium text-bhat-ink">${workshop.name}</h4>
-                        <p class="text-xs text-stone-500 font-medium"><i class="fas fa-map-marker-alt text-stone-300 mr-1"></i>${workshop.location}</p>
-                    </div>
-                    <div class="flex gap-2 pr-2">
-                        <a href="tel:${workshop.phone}" class="w-9 h-9 rounded-full bg-stone-50 border border-stone-100 flex items-center justify-center hover:bg-stone-100 text-stone-500 transition-colors">
-                            <i class="fas fa-phone text-xs"></i>
-                        </a>
-                        <button onclick="toggleFollow('${workshop.id}')" class="w-9 h-9 rounded-full bg-red-50 border border-red-100 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors">
-                            <i class="fas fa-times text-xs"></i>
-                        </button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function editProfileName() {
-            const modal = document.getElementById('editProfileModal');
-            const content = document.getElementById('editProfileContent');
-            const input = document.getElementById('editNameInput');
-            
-            input.value = currentUser;
-            
-            modal.classList.remove('hidden');
-            void modal.offsetWidth; // Trigger reflow
-            
-            modal.classList.remove('opacity-0');
-            content.classList.remove('scale-95');
-            content.classList.add('scale-100');
-            
-            setTimeout(() => input.focus(), 300);
-        }
-
-        function closeEditProfileModal() {
-            const modal = document.getElementById('editProfileModal');
-            const content = document.getElementById('editProfileContent');
-            
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-
-        function saveProfileName() {
-            const input = document.getElementById('editNameInput');
-            const newName = input.value;
-            if (newName && newName.trim() !== "") {
-                currentUser = newName.trim();
-                localStorage.setItem('bhat_user', currentUser);
-                document.getElementById('profileNameDisplay').textContent = currentUser;
-                closeEditProfileModal();
-            }
-        }
-
-        function handleProfilePhotoUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    profilePhoto = e.target.result;
-                    localStorage.setItem('bhat_profile_photo', profilePhoto);
-                    document.getElementById('profileIcon').classList.add('hidden');
-                    const img = document.getElementById('profileImage');
-                    img.src = profilePhoto;
-                    img.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function showModal(msg) {
-            document.getElementById('modalMessage').textContent = msg;
-            const modal = document.getElementById('successModal');
-            const content = document.getElementById('modalContent');
-            
-            modal.classList.remove('hidden');
-            // Trigger reflow
-            void modal.offsetWidth;
-            
-            modal.classList.remove('opacity-0');
-            content.classList.remove('scale-95');
-            content.classList.add('scale-100');
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('successModal');
-            const content = document.getElementById('modalContent');
-            
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-
-        function showConfirmModal(msg, onConfirm) {
-            document.getElementById('confirmModalMessage').textContent = msg;
-            const modal = document.getElementById('confirmModal');
-            const content = document.getElementById('confirmModalContent');
-            const confirmBtn = document.getElementById('confirmActionBtn');
-            
-            // Remove old event listeners by cloning
-            const newConfirmBtn = confirmBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-            
-            newConfirmBtn.addEventListener('click', () => {
-                onConfirm();
-                closeConfirmModal();
-            });
-
-            modal.classList.remove('hidden');
-            void modal.offsetWidth;
-            modal.classList.remove('opacity-0');
-            content.classList.remove('scale-95');
-            content.classList.add('scale-100');
-        }
-
-        function closeConfirmModal() {
-            const modal = document.getElementById('confirmModal');
-            const content = document.getElementById('confirmModalContent');
-            
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-
-        // Continuous floating animation for background tools
-        gsap.utils.toArray('.floating-tool').forEach(tool => {
-            gsap.to(tool, {
-                rotation: "+=15",
-                scale: 1.05,
-                duration: "random(3, 5)",
-                yoyo: true,
-                repeat: -1,
-                ease: "sine.inOut",
-                delay: "random(0, 2)"
-            });
-        });
-
-        // --- New Features Logic ---
-
-        function openWorkshopDetail(id) {
-            const workshop = allWorkshops.find(w => w.id === id);
-            if (!workshop) return;
-
-            const modal = document.getElementById('workshopDetailModal');
-            const content = document.getElementById('workshopDetailContent');
-            const body = document.getElementById('workshopDetailBody');
-
-            // Generate gallery images (mocking if not present)
-            const gallery = workshop.gallery || [
-                workshop.image,
-                'https://images.unsplash.com/photo-1625047509168-a71c6f959828?q=80&w=500&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=500&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=500&auto=format&fit=crop'
-            ];
-
-            const galleryHtml = gallery.map(img => `
-                <div class="min-w-[120px] h-24 rounded-xl overflow-hidden flex-shrink-0 border border-stone-200 dark:border-stone-700">
-                    <img src="${img}" class="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity" onclick="document.getElementById('mainWorkshopImage').src='${img}'">
-                </div>
-            `).join('');
-
-            const hoursHtml = `
-                <ul class="text-sm text-stone-600 dark:text-stone-400 space-y-2">
-                    <li class="flex justify-between"><span class="font-medium">Monday</span> <span>10:00 AM - 8:00 PM</span></li>
-                    <li class="flex justify-between"><span class="font-medium">Tuesday</span> <span>10:00 AM - 8:00 PM</span></li>
-                    <li class="flex justify-between"><span class="font-medium">Wednesday</span> <span>10:00 AM - 8:00 PM</span></li>
-                    <li class="flex justify-between"><span class="font-medium">Thursday</span> <span>10:00 AM - 8:00 PM</span></li>
-                    <li class="flex justify-between text-red-500"><span class="font-medium">Friday</span> <span>Closed</span></li>
-                    <li class="flex justify-between"><span class="font-medium">Saturday</span> <span>10:00 AM - 8:00 PM</span></li>
-                    <li class="flex justify-between"><span class="font-medium">Sunday</span> <span>10:00 AM - 4:00 PM</span></li>
-                </ul>
-            `;
-
-            body.innerHTML = `
-                <div class="h-64 sm:h-80 relative">
-                    <img id="mainWorkshopImage" src="${workshop.image}" class="w-full h-full object-cover transition-all duration-300">
-                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 via-black/50 to-transparent p-6 pt-20">
-                        <h2 class="text-3xl font-serif font-medium text-white mb-1">${workshop.name}</h2>
-                        <p class="text-stone-300 text-sm flex items-center gap-2"><i class="fas fa-map-marker-alt"></i> ${workshop.location}</p>
-                    </div>
-                </div>
-                <div class="p-6 sm:p-8">
-                    <!-- Photo Gallery -->
-                    <div class="mb-8">
-                        <h4 class="text-sm font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-3">Photo Gallery</h4>
-                        <div class="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
-                            ${galleryHtml}
-                        </div>
-                    </div>
-
-                    <div class="grid sm:grid-cols-2 gap-8">
-                        <div>
-                            <h4 class="text-sm font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-4">Services</h4>
-                            <div class="flex flex-wrap gap-2 mb-8">
-                                ${workshop.services.map(s => `<span class="text-xs font-medium bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700 px-3 py-1.5 rounded-lg text-bhat-ink dark:text-bhat-darkInk">${s}</span>`).join('')}
-                            </div>
-                            
-                            <h4 class="text-sm font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-4">Contact Info</h4>
-                            <div class="space-y-3 mb-8">
-                                <div class="flex items-center gap-3 text-sm text-bhat-ink dark:text-bhat-darkInk">
-                                    <div class="w-8 h-8 rounded-full bg-stone-50 dark:bg-stone-800 flex items-center justify-center text-stone-500 dark:text-stone-400"><i class="fas fa-phone"></i></div>
-                                    ${workshop.phone}
-                                </div>
-                            </div>
-
-                            <h4 class="text-sm font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-4">Opening Hours</h4>
-                            <div class="bg-stone-50 dark:bg-stone-800/50 rounded-2xl p-4 border border-stone-100 dark:border-stone-700 mb-8 sm:mb-0">
-                                ${hoursHtml}
-                            </div>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-4">Location</h4>
-                            <div class="rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 h-64 mb-6 relative bg-stone-100 dark:bg-stone-800 shadow-inner">
-                                <iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://maps.google.com/maps?q=${encodeURIComponent(workshop.name + ' ' + workshop.location)}&t=&z=14&ie=UTF8&iwloc=&output=embed" allowfullscreen></iframe>
-                            </div>
-                            <button onclick="openBookingModal('${workshop.id}'); closeWorkshopDetailModal();" class="w-full ripple btn-dark bg-bhat-ink dark:bg-bhat-darkAccent text-white dark:text-bhat-ink font-medium text-sm p-4 rounded-2xl hover:bg-stone-800 dark:hover:bg-[#00e6b8] transition-all shadow-md">
-                                Book Appointment
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            modal.classList.remove('hidden');
-            void modal.offsetWidth;
-            modal.classList.remove('opacity-0');
-            content.classList.remove('scale-95');
-            content.classList.add('scale-100');
-        }
-
-        function closeWorkshopDetailModal() {
-            const modal = document.getElementById('workshopDetailModal');
-            const content = document.getElementById('workshopDetailContent');
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        function openBookingModal(id) {
-            const workshop = allWorkshops.find(w => w.id === id);
-            if (!workshop) return;
-
-            document.getElementById('bookingWorkshopId').value = id;
-            document.getElementById('bookingWorkshopName').textContent = `Booking at ${workshop.name}`;
-            
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('bookingDate').setAttribute('min', today);
-
-            const modal = document.getElementById('bookingModal');
-            const content = document.getElementById('bookingContent');
-            modal.classList.remove('hidden');
-            void modal.offsetWidth;
-            modal.classList.remove('opacity-0');
-            content.classList.remove('scale-95');
-            content.classList.add('scale-100');
-        }
-
-        function closeBookingModal() {
-            const modal = document.getElementById('bookingModal');
-            const content = document.getElementById('bookingContent');
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        document.getElementById('bookingForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = document.getElementById('bookingWorkshopId').value;
-            const date = document.getElementById('bookingDate').value;
-            const time = document.getElementById('bookingTime').value;
-            const vehicle = document.getElementById('bookingVehicle').value;
-
-            bookings.push({ id: Date.now(), workshopId: id, date, time, vehicle, status: 'Pending' });
-            localStorage.setItem('bhat_bookings', JSON.stringify(bookings));
-
-            closeBookingModal();
-            e.target.reset();
-            showModal('Your appointment has been booked successfully! The workshop will contact you soon.');
-        });
-
-        // Dashboard Logic
-        function loginMechanic() {
-            const phone = document.getElementById('mechanicPhoneInput').value;
-            if (phone.trim().length > 5) {
-                mechanicLoggedIn = true;
-                mechanicPhone = phone.trim();
-                localStorage.setItem('bhat_mechanic_logged_in', 'true');
-                localStorage.setItem('bhat_mechanic_phone', mechanicPhone);
-                renderDashboard();
-            } else {
-                alert("Please enter a valid phone number.");
-            }
-        }
-
-        function logoutMechanic() {
-            mechanicLoggedIn = false;
-            mechanicPhone = '';
-            localStorage.setItem('bhat_mechanic_logged_in', 'false');
-            localStorage.setItem('bhat_mechanic_phone', '');
-            renderDashboard();
-        }
-
-        function renderDashboard() {
-            const loginSection = document.getElementById('dashboardLogin');
-            const contentSection = document.getElementById('dashboardContent');
-
-            if (!mechanicLoggedIn) {
-                loginSection.classList.remove('hidden');
-                contentSection.classList.add('hidden');
-                return;
-            }
-
-            loginSection.classList.add('hidden');
-            contentSection.classList.remove('hidden');
-
-            let ownedWorkshops = allWorkshops.filter(w => w.phone.replace(/\\s/g, '') === mechanicPhone.replace(/\\s/g, ''));
-            if (mechanicPhone === '9906584655') {
-                ownedWorkshops = allWorkshops; // Admin sees all workshops
-            }
-
-            if (ownedWorkshops.length === 0) {
-                contentSection.innerHTML = `
-                    <div class="bg-white dark:bg-bhat-darkSurface border border-stone-100 dark:border-stone-800 p-8 rounded-[2rem] text-center">
-                        <p class="text-stone-500 dark:text-stone-400 mb-4">No workshops found for this phone number.</p>
-                        <button onclick="logoutMechanic()" class="text-sm text-bhat-accent hover:underline">Logout</button>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = `
-                <div class="flex justify-between items-center bg-white dark:bg-bhat-darkSurface border border-stone-100 dark:border-stone-800 p-6 rounded-[2rem]">
-                    <div>
-                        <h3 class="font-serif font-medium text-xl text-bhat-ink dark:text-bhat-darkInk">Welcome Back</h3>
-                        <p class="text-xs text-stone-500 dark:text-stone-400">${mechanicPhone}</p>
-                    </div>
-                    <button onclick="logoutMechanic()" class="text-sm bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-4 py-2 rounded-xl hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors">Logout</button>
-                </div>
-            `;
-
-            ownedWorkshops.forEach(w => {
-                const savesCount = Math.floor(Math.random() * 50) + 10;
-                const isOpen = localStorage.getItem('status_' + w.id) !== 'closed';
-
-                html += `
-                    <div class="bg-white dark:bg-bhat-darkSurface border border-stone-100 dark:border-stone-800 p-6 md:p-8 rounded-[2rem] shadow-sm">
-                        <div class="flex flex-col md:flex-row gap-6 items-start md:items-center">
-                            <img src="${w.image}" class="w-24 h-24 rounded-2xl object-cover border border-stone-200 dark:border-stone-700">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-3 mb-1">
-                                    <h3 class="text-2xl font-serif font-medium text-bhat-ink dark:text-bhat-darkInk">${w.name}</h3>
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isOpen ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">
-                                        ${isOpen ? 'Open' : 'Closed'}
-                                    </span>
-                                </div>
-                                <p class="text-stone-500 dark:text-stone-400 text-sm mb-4"><i class="fas fa-map-marker-alt mr-1"></i> ${w.location}</p>
-                                <div class="flex gap-4">
-                                    <div class="text-center">
-                                        <div class="text-xl font-bold text-bhat-ink dark:text-bhat-darkInk">${savesCount}</div>
-                                        <div class="text-[10px] uppercase tracking-wider text-stone-400">Saves</div>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-xl font-bold text-bhat-ink dark:text-bhat-darkInk">${bookings.filter(b => b.workshopId === w.id).length}</div>
-                                        <div class="text-[10px] uppercase tracking-wider text-stone-400">Bookings</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex flex-col gap-2 w-full md:w-auto">
-                                <button onclick="toggleWorkshopStatus('${w.id}')" class="bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-bhat-ink dark:text-bhat-darkInk px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
-                                    Mark as ${isOpen ? 'Closed' : 'Open'}
-                                </button>
-                                <button onclick="promptUpdatePhoto('${w.id}')" class="bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-bhat-ink dark:text-bhat-darkInk px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
-                                    Update Photos
-                                </button>
-                                <button onclick="openEditWorkshopModal('${w.id}')" class="bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-bhat-ink dark:text-bhat-darkInk px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
-                                    Edit Details
-                                </button>
-                                <button onclick="deleteWorkshop('${w.id}')" class="bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-500 dark:text-red-400 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
-                                    Delete Workshop
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            contentSection.innerHTML = html;
-        }
-
-        function openEditWorkshopModal(id) {
-            let workshop = userWorkshops.find(w => w.id === id);
-            let isDBWorkshop = false;
-            if (!workshop) {
-                workshop = workshopsDB.find(w => w.id === id);
-                if (workshop && mechanicPhone === '9906584655') {
-                    isDBWorkshop = true;
-                } else {
-                    alert("You can only edit workshops you have registered.");
-                    return;
-                }
-            }
-
-            document.getElementById('editWId').value = workshop.id;
-            document.getElementById('editWName').value = workshop.name;
-            document.getElementById('editWOwner').value = workshop.owner || '';
-            document.getElementById('editWPhone').value = workshop.phone;
-            document.getElementById('editWLocation').value = workshop.location;
-            document.getElementById('editWServices').value = workshop.services.join(', ');
-            
-            if (workshop.links) {
-                document.getElementById('editWLinkCall').value = workshop.links.call || '';
-                document.getElementById('editWLinkDirections').value = workshop.links.directions || '';
-                document.getElementById('editWLinkYoutube').value = workshop.links.youtube || '';
-                document.getElementById('editWLinkInstagram').value = workshop.links.instagram || '';
-            } else {
-                document.getElementById('editWLinkCall').value = '';
-                document.getElementById('editWLinkDirections').value = '';
-                document.getElementById('editWLinkYoutube').value = '';
-                document.getElementById('editWLinkInstagram').value = '';
-            }
-
-            const modal = document.getElementById('editWorkshopModal');
-            const content = document.getElementById('editWorkshopContent');
-            modal.classList.remove('hidden');
-            void modal.offsetWidth;
-            modal.classList.remove('opacity-0');
-            content.classList.remove('scale-95');
-            content.classList.add('scale-100');
-        }
-
-        function closeEditWorkshopModal() {
-            const modal = document.getElementById('editWorkshopModal');
-            const content = document.getElementById('editWorkshopContent');
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        document.getElementById('editWorkshopForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = document.getElementById('editWId').value;
-            
-            const name = document.getElementById('editWName').value;
-            const owner = document.getElementById('editWOwner').value;
-            const location = document.getElementById('editWLocation').value;
-            const services = document.getElementById('editWServices').value.split(',').map(s => s.trim());
-            const links = {
-                call: document.getElementById('editWLinkCall').value,
-                directions: document.getElementById('editWLinkDirections').value,
-                youtube: document.getElementById('editWLinkYoutube').value,
-                instagram: document.getElementById('editWLinkInstagram').value
-            };
-            
-            const wsIndex = userWorkshops.findIndex(w => w.id === id);
-            if (wsIndex > -1) {
-                userWorkshops[wsIndex].name = name;
-                userWorkshops[wsIndex].owner = owner;
-                userWorkshops[wsIndex].location = location;
-                userWorkshops[wsIndex].services = services;
-                userWorkshops[wsIndex].links = links;
-                localStorage.setItem('bhat_user_workshops', JSON.stringify(userWorkshops));
-            } else if (mechanicPhone === '9906584655') {
-                const dbIndex = workshopsDB.findIndex(w => w.id === id);
-                if (dbIndex > -1) {
-                    workshopsDB[dbIndex].name = name;
-                    workshopsDB[dbIndex].owner = owner;
-                    workshopsDB[dbIndex].location = location;
-                    workshopsDB[dbIndex].services = services;
-                    workshopsDB[dbIndex].links = links;
-                    localStorage.setItem('bhat_workshops_db', JSON.stringify(workshopsDB));
-                }
-            }
-            
-            const allWsIndex = allWorkshops.findIndex(w => w.id === id);
-            if (allWsIndex > -1) {
-                allWorkshops[allWsIndex].name = name;
-                allWorkshops[allWsIndex].owner = owner;
-                allWorkshops[allWsIndex].location = location;
-                allWorkshops[allWsIndex].services = services;
-                allWorkshops[allWsIndex].links = links;
-            }
-
-            closeEditWorkshopModal();
-            renderDashboard();
-            renderWorkshops(allWorkshops);
-            updateFeaturedWorkshopDOM();
-            showModal('Workshop details updated successfully!');
-        });
-
-        function toggleWorkshopStatus(id) {
-            const current = localStorage.getItem('status_' + id);
-            if (current === 'closed') {
-                localStorage.setItem('status_' + id, 'open');
-            } else {
-                localStorage.setItem('status_' + id, 'closed');
-            }
-            renderDashboard();
-        }
-
-        function deleteWorkshop(id) {
-            showConfirmModal("Are you sure you want to delete this workshop? This action cannot be undone.", () => {
-                // Remove from userWorkshops if exists
-                const wsIndex = userWorkshops.findIndex(w => w.id === id);
-                if (wsIndex > -1) {
-                    userWorkshops.splice(wsIndex, 1);
-                    localStorage.setItem('bhat_user_workshops', JSON.stringify(userWorkshops));
-                } else if (mechanicPhone === '9906584655') {
-                    // Admin deleting a DB workshop
-                    const dbIndex = workshopsDB.findIndex(w => w.id === id);
-                    if (dbIndex > -1) {
-                        workshopsDB.splice(dbIndex, 1);
-                        localStorage.setItem('bhat_workshops_db', JSON.stringify(workshopsDB));
-                    }
-                }
-
-                // Remove from allWorkshops
-                const allWsIndex = allWorkshops.findIndex(w => w.id === id);
-                if (allWsIndex > -1) {
-                    allWorkshops.splice(allWsIndex, 1);
-                }
-
-                // Clean up status
-                localStorage.removeItem('status_' + id);
-
-                renderDashboard();
-                renderWorkshops(allWorkshops);
-                
-                // If it's the featured workshop, update DOM
-                if (id === 'aashaq-bike-point') {
-                    updateFeaturedWorkshopDOM();
-                }
-
-                showModal('Workshop deleted successfully.');
-            });
-        }
-
-        function promptUpdatePhoto(id) {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.multiple = true;
-            input.onchange = async function(event) {
-                const files = Array.from(event.target.files);
-                if (files.length > 0) {
-                    const readPromises = files.map(file => {
-                        return new Promise((resolve) => {
-                            const reader = new FileReader();
-                            reader.onload = (e) => resolve(e.target.result);
-                            reader.readAsDataURL(file);
-                        });
-                    });
-
-                    const newUrls = await Promise.all(readPromises);
-                    const mainUrl = newUrls[0];
-
-                    const wsIndex = userWorkshops.findIndex(w => w.id === id);
-                    if (wsIndex > -1) {
-                        userWorkshops[wsIndex].image = mainUrl;
-                        userWorkshops[wsIndex].gallery = newUrls;
-                        localStorage.setItem('bhat_user_workshops', JSON.stringify(userWorkshops));
-                    } else if (mechanicPhone === '9906584655') {
-                        const dbIndex = workshopsDB.findIndex(w => w.id === id);
-                        if (dbIndex > -1) {
-                            workshopsDB[dbIndex].image = mainUrl;
-                            workshopsDB[dbIndex].gallery = newUrls;
-                            localStorage.setItem('bhat_workshops_db', JSON.stringify(workshopsDB));
-                        }
-                    } else {
-                        alert("You can only update photos for workshops you registered.");
-                        return;
-                    }
-                    
-                    const allWsIndex = allWorkshops.findIndex(w => w.id === id);
-                    if(allWsIndex > -1) {
-                        allWorkshops[allWsIndex].image = mainUrl;
-                        allWorkshops[allWsIndex].gallery = newUrls;
-                    }
-                    
-                    renderDashboard();
-                    renderWorkshops(allWorkshops);
-                    updateFeaturedWorkshopDOM();
-                    showModal('Workshop photos updated successfully!');
-                }
-            };
-            input.click();
-        }
-
-        // Hook into navigation to render dashboard
-        const originalNavigate = window.navigate;
-        window.navigate = function(pageId) {
-            originalNavigate(pageId);
-            if (pageId === 'dashboard') {
-                renderDashboard();
-            }
+        // --- CONFIG & STATE ---
+        const defState = {
+            brightness: 1, contrast: 1, saturation: 1, exposure: 0, fade: 0, warmth: 0, sharpness: 0,
+            blur: 0, grain: 0, vignette: 0, glow: 0, lightLeak: 0, dust: 0, clarity: 0
         };
 
-        document.addEventListener('mousemove', (e) => {
-            // Home parallax background
-            if(document.getElementById('home').classList.contains('active')) {
-                const x = (window.innerWidth - e.pageX * 2) / 100;
-                const y = (window.innerHeight - e.pageY * 2) / 100;
-                gsap.to('.parallax-bg', {
-                    x: x,
-                    y: y,
-                    duration: 1,
-                    ease: "power1.out"
-                });
-            }
+        let state = { ...defState };
+        let imgOrig = null;
+        let imgPreview = null;
+        let isCompare = false;
+        let cropper = null;
+        let croppedImageData = null;
 
-            // Reactive floating tools parallax
-            const mouseX = (e.clientX / window.innerWidth - 0.5);
-            const mouseY = (e.clientY / window.innerHeight - 0.5);
+        // Frame state
+        let frameState = {
+            type: 'none',
+            padding: 0,
+            radius: 8,
+            shadow: 0,
+            color: '#ffffff'
+        };
+
+        const presets = {
+            'Clean': { brightness: 1.02, contrast: 1.1, saturation: 1.05, exposure: 0, fade: 0, warmth: 0, sharpness: 0.2, blur: 0, grain: 0, vignette: 0.1, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 },
+            'Bright': { brightness: 1.15, contrast: 1.05, saturation: 1.1, exposure: 0.2, fade: 0, warmth: 0.1, sharpness: 0, blur: 0, grain: 0, vignette: 0, glow: 0.1, lightLeak: 0, dust: 0, clarity: 0 },
+            'Warm': { brightness: 1.05, contrast: 1.05, saturation: 1.05, exposure: 0, fade: 0, warmth: 0.3, sharpness: 0, blur: 0, grain: 0, vignette: 0.1, glow: 0, lightLeak: 0, dust: 0, clarity: 0 },
+            'Cool': { brightness: 1.02, contrast: 1.1, saturation: 0.9, exposure: 0, fade: 0, warmth: -0.2, sharpness: 0.1, blur: 0, grain: 0, vignette: 0.1, glow: 0, lightLeak: 0, dust: 0, clarity: 0.1 },
+            'Noir': { brightness: 1, contrast: 1.4, saturation: 0, exposure: -0.1, fade: 0, warmth: 0, sharpness: 0.2, blur: 0, grain: 0.3, vignette: 0.5, glow: 0, lightLeak: 0, dust: 0, clarity: 0.3 },
+            'Vintage': { brightness: 1, contrast: 0.9, saturation: 0.7, exposure: 0.1, fade: 0.3, warmth: 0.3, sharpness: 0, blur: 0.5, grain: 0.4, vignette: 0.3, glow: 0, lightLeak: 0.1, dust: 0.2, clarity: 0 },
+            'Dramatic': { brightness: 0.95, contrast: 1.25, saturation: 1.1, exposure: -0.1, fade: 0, warmth: 0, sharpness: 0.3, blur: 0, grain: 0.1, vignette: 0.4, glow: 0, lightLeak: 0, dust: 0, clarity: 0.2 },
+            'Soft': { brightness: 1.1, contrast: 0.9, saturation: 0.95, exposure: 0.1, fade: 0.2, warmth: 0.2, sharpness: 0, blur: 0.5, grain: 0, vignette: 0, glow: 0.2, lightLeak: 0, dust: 0, clarity: -0.1 },
+            'Mono': { brightness: 1, contrast: 1.2, saturation: 0, exposure: 0, fade: 0.1, warmth: 0, sharpness: 0.2, blur: 0, grain: 0.2, vignette: 0.2, glow: 0, lightLeak: 0, dust: 0, clarity: 0.2 }
+        };
+
+        const controls = [
+            { id: 'brightness', label: 'Brightness', min: 0.5, max: 1.5, step: 0.01, def: 1 },
+            { id: 'contrast', label: 'Contrast', min: 0.5, max: 1.5, step: 0.01, def: 1 },
+            { id: 'saturation', label: 'Saturation', min: 0, max: 2, step: 0.01, def: 1 },
+            { id: 'exposure', label: 'Exposure', min: -1, max: 1, step: 0.01, def: 0 },
+            { id: 'fade', label: 'Fade', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'warmth', label: 'Warmth', min: -1, max: 1, step: 0.01, def: 0 },
+            { id: 'sharpness', label: 'Sharpness', min: 0, max: 1, step: 0.01, def: 0 }
+        ];
+
+        const fx = [
+            { id: 'blur', label: 'Blur', min: 0, max: 10, step: 0.1, def: 0 },
+            { id: 'grain', label: 'Grain', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'vignette', label: 'Vignette', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'glow', label: 'Glow', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'lightLeak', label: 'Light Leak', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'dust', label: 'Dust', min: 0, max: 1, step: 0.01, def: 0 },
+            { id: 'clarity', label: 'Clarity', min: -1, max: 1, step: 0.01, def: 0 }
+        ];
+
+        // --- DOM ---
+        const $ = id => document.getElementById(id);
+        const canvas = $('canvas');
+        const ctx = canvas.getContext('2d');
+        const panelsWrap = $('panels');
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const canvasFrame = $('canvas-frame');
+
+        // --- PATTERNS ---
+        let patGrain, patDust;
+        function initPatterns() {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 256;
+            const x = c.getContext('2d');
             
-            gsap.utils.toArray('.floating-tool').forEach(tool => {
-                const speed = parseFloat(tool.getAttribute('data-speed'));
-                gsap.to(tool, {
-                    x: mouseX * 80 * speed,
-                    y: mouseY * 80 * speed,
-                    duration: 2,
-                    ease: "power2.out",
-                    overwrite: "auto"
+            const idata = x.createImageData(256, 256);
+            for(let i=0; i<idata.data.length; i+=4) {
+                const v = Math.random()*255;
+                idata.data[i] = idata.data[i+1] = idata.data[i+2] = v;
+                idata.data[i+3] = 150;
+            }
+            x.putImageData(idata, 0, 0);
+            patGrain = ctx.createPattern(c, 'repeat');
+
+            x.clearRect(0,0,256,256);
+            x.fillStyle = '#fff';
+            for(let i=0; i<80; i++) {
+                x.beginPath(); x.arc(Math.random()*256, Math.random()*256, Math.random()*1.2, 0, Math.PI*2); x.fill();
+            }
+            x.strokeStyle = '#fff';
+            for(let i=0; i<10; i++) {
+                x.beginPath(); x.moveTo(Math.random()*256, Math.random()*256); x.lineTo(Math.random()*256, Math.random()*256);
+                x.lineWidth = Math.random(); x.stroke();
+            }
+            patDust = ctx.createPattern(c, 'repeat');
+        }
+        initPatterns();
+
+        // --- UI BUILDER ---
+        function updateSliderFill(el) {
+            const min = parseFloat(el.min);
+            const max = parseFloat(el.max);
+            const val = parseFloat(el.value);
+            const pct = ((val - min) / (max - min)) * 100;
+            el.style.setProperty('--p', `${pct}%`);
+        }
+
+        function buildSliders(containerId, config) {
+            const cont = $(containerId);
+            config.forEach(c => {
+                cont.innerHTML += `
+                    <div class="slider-group">
+                        <div class="slider-header"><span>${c.label}</span><span class="slider-val" id="val-${c.id}">${c.def.toFixed(2)}</span></div>
+                        <input type="range" id="sl-${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.def}">
+                    </div>
+                `;
+            });
+            config.forEach(c => {
+                const slider = $(`sl-${c.id}`);
+                updateSliderFill(slider); 
+                
+                slider.addEventListener('input', e => {
+                    state[c.id] = parseFloat(e.target.value);
+                    $(`val-${c.id}`).innerText = state[c.id].toFixed(2);
+                    updateSliderFill(e.target);
+                    document.querySelectorAll('.preset-card').forEach(el => el.classList.remove('active'));
+                    triggerRender();
                 });
             });
-        });
-    </script>
+        }
 
-    <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/919906584655" target="_blank" class="fixed bottom-24 md:bottom-8 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-full flex items-center justify-center text-3xl shadow-lg transition-colors whatsapp-float">
-        <i class="fab fa-whatsapp"></i>
-    </a>
+        function buildPresets() {
+            const cont = $('presets-container');
+            Object.keys(presets).forEach(k => {
+                const div = document.createElement('div');
+                div.className = 'preset-card';
+                div.id = `preset-card-${k.replace(/\s+/g, '-')}`;
+                div.innerHTML = `<span>${k}</span>`;
+                div.onclick = () => {
+                    document.querySelectorAll('.preset-card').forEach(el => el.classList.remove('active'));
+                    div.classList.add('active');
+                    state = { ...defState, ...presets[k] };
+                    updateSlidersUI();
+                    triggerRender();
+                };
+                cont.appendChild(div);
+            });
+        }
+
+        function updateSlidersUI() {
+            [...controls, ...fx].forEach(c => {
+                const slider = $(`sl-${c.id}`);
+                if(slider) {
+                    slider.value = state[c.id];
+                    $(`val-${c.id}`).innerText = state[c.id].toFixed(2);
+                    updateSliderFill(slider);
+                }
+            });
+        }
+
+        buildSliders('sliders-control', controls);
+        buildSliders('sliders-fx', fx);
+        buildPresets();
+
+        // --- FRAME CONTROLS ---
+        const frameOptions = document.querySelectorAll('.frame-option');
+        frameOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                frameOptions.forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+                frameState.type = option.dataset.frame;
+                applyFrame();
+            });
+        });
+
+        // Frame sliders
+        const framePaddingSlider = $('sl-frame-padding');
+        const frameRadiusSlider = $('sl-frame-radius');
+        const frameShadowSlider = $('sl-frame-shadow');
+        const frameColorInput = $('frame-color');
+
+        framePaddingSlider.addEventListener('input', (e) => {
+            frameState.padding = parseInt(e.target.value);
+            $('val-frame-padding').textContent = frameState.padding;
+            updateSliderFill(e.target);
+            applyFrame();
+        });
+
+        frameRadiusSlider.addEventListener('input', (e) => {
+            frameState.radius = parseInt(e.target.value);
+            $('val-frame-radius').textContent = frameState.radius;
+            updateSliderFill(e.target);
+            applyFrame();
+        });
+
+        frameShadowSlider.addEventListener('input', (e) => {
+            frameState.shadow = parseInt(e.target.value);
+            $('val-frame-shadow').textContent = frameState.shadow;
+            updateSliderFill(e.target);
+            applyFrame();
+        });
+
+        frameColorInput.addEventListener('input', (e) => {
+            frameState.color = e.target.value;
+            applyFrame();
+        });
+
+        function applyFrame() {
+            const root = document.documentElement;
+            
+            // Apply based on frame type
+            switch(frameState.type) {
+                case 'none':
+                    root.style.setProperty('--frame-padding', '0');
+                    root.style.setProperty('--frame-radius', '8');
+                    root.style.setProperty('--frame-shadow', '0');
+                    canvasFrame.style.borderRadius = '8px';
+                    canvasFrame.style.padding = '0';
+                    canvas.style.borderRadius = '8px';
+                    break;
+                case 'rounded':
+                    root.style.setProperty('--frame-padding', frameState.padding.toString());
+                    root.style.setProperty('--frame-radius', Math.max(frameState.radius, 16).toString());
+                    root.style.setProperty('--frame-shadow', frameState.shadow.toString());
+                    canvasFrame.style.background = frameState.color;
+                    break;
+                case 'circle':
+                    root.style.setProperty('--frame-padding', frameState.padding.toString());
+                    root.style.setProperty('--frame-radius', '50');
+                    root.style.setProperty('--frame-shadow', frameState.shadow.toString());
+                    canvasFrame.style.background = frameState.color;
+                    canvasFrame.style.aspectRatio = '1';
+                    break;
+                case 'polaroid':
+                    root.style.setProperty('--frame-padding', Math.max(frameState.padding, 12).toString());
+                    root.style.setProperty('--frame-radius', Math.max(frameState.radius, 4).toString());
+                    root.style.setProperty('--frame-shadow', Math.max(frameState.shadow, 10).toString());
+                    canvasFrame.style.background = frameState.color;
+                    break;
+                case 'shadow':
+                    root.style.setProperty('--frame-padding', frameState.padding.toString());
+                    root.style.setProperty('--frame-radius', frameState.radius.toString());
+                    root.style.setProperty('--frame-shadow', Math.max(frameState.shadow, 20).toString());
+                    canvasFrame.style.background = frameState.color;
+                    break;
+            }
+            
+            // Update CSS variables
+            if (frameState.type !== 'none') {
+                root.style.setProperty('--frame-padding', frameState.padding.toString());
+                root.style.setProperty('--frame-radius', frameState.radius.toString());
+                root.style.setProperty('--frame-shadow', frameState.shadow.toString());
+                canvasFrame.style.background = frameState.color;
+            }
+            
+            // Update canvas border radius
+            canvas.style.borderRadius = frameState.type === 'circle' ? '50%' : `${frameState.radius * 0.5}px`;
+        }
+
+        // Initialize frame sliders
+        updateSliderFill(framePaddingSlider);
+        updateSliderFill(frameRadiusSlider);
+        updateSliderFill(frameShadowSlider);
+
+        // --- PRESET THUMBNAIL GENERATOR ---
+        function generatePresetThumbnails(sourceImg) {
+            const maxThumb = 150;
+            let w = sourceImg.width, h = sourceImg.height;
+            if (w > maxThumb || h > maxThumb) {
+                const r = Math.min(maxThumb/w, maxThumb/h);
+                w *= r; h *= r;
+            }
+            
+            const tCanvas = document.createElement('canvas');
+            tCanvas.width = w; tCanvas.height = h;
+            const tCtx = tCanvas.getContext('2d');
+            tCtx.drawImage(sourceImg, 0, 0, w, h);
+            
+            const thumbImg = new Image();
+            thumbImg.onload = () => {
+                const renderCanvas = document.createElement('canvas');
+                const renderCtx = renderCanvas.getContext('2d');
+                
+                Object.keys(presets).forEach(k => {
+                    const presetState = { ...defState, ...presets[k] };
+                    draw(renderCanvas, renderCtx, thumbImg, presetState);
+                    const dataUrl = renderCanvas.toDataURL('image/jpeg', 0.6);
+                    const card = document.getElementById(`preset-card-${k.replace(/\s+/g, '-')}`);
+                    if(card) {
+                        card.style.backgroundImage = `url(${dataUrl})`;
+                    }
+                });
+            };
+            thumbImg.src = tCanvas.toDataURL('image/jpeg', 0.8);
+        }
+
+        // --- NAVIGATION ---
+        navBtns.forEach(btn => {
+            btn.onclick = () => {
+                const target = btn.dataset.target;
+                
+                if(btn.classList.contains('active') && panelsWrap.classList.contains('active')) {
+                    closePanel();
+                    return;
+                }
+
+                navBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                $(`p-${target}`).classList.add('active');
+                panelsWrap.classList.add('active');
+                document.body.classList.add('panel-open');
+            };
+        });
+
+        function closePanel() {
+            panelsWrap.classList.remove('active');
+            document.body.classList.remove('panel-open');
+            navBtns.forEach(b => b.classList.remove('active'));
+        }
+
+        $('panelHandle').addEventListener('click', closePanel);
+
+        $('main').addEventListener('click', (e) => {
+            if(e.target === $('main') || e.target.closest('#canvas-frame')) {
+                closePanel();
+            }
+        });
+
+        // --- CROPPER PHASE ---
+        const emptyState = $('empty-state');
+        const cropperContainer = $('cropperContainer');
+        const imageToCrop = $('imageToCrop');
+        const cropperFooter = $('cropperFooter');
+
+        $('empty-state').onclick = () => $('file-input').click();
+        $('btn-upload').onclick = () => {
+            $('file-input').click();
+            closePanel();
+        };
+
+        $('file-input').onchange = e => {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            $('loading-overlay').classList.add('active');
+            
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const img = new Image();
+                img.onload = () => {
+                    imgOrig = img;
+                    imageToCrop.src = ev.target.result;
+                    
+                    emptyState.style.display = 'none';
+                    cropperContainer.classList.add('visible');
+                    
+                    document.body.classList.remove('editor-phase');
+                    document.body.classList.add('cropper-phase');
+                    
+                    initCropper();
+                    
+                    setTimeout(() => {
+                        $('loading-overlay').classList.remove('active');
+                    }, 500);
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        function initCropper() {
+            if(cropper) cropper.destroy();
+            
+            cropper = new Cropper(imageToCrop, {
+                viewMode: 1,
+                dragMode: 'crop',
+                autoCropArea: 0.8,
+                restore: false,
+                guides: true,
+                center: false,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+                zoomable: true,
+                wheelZoomRatio: 0.1
+            });
+        }
+
+        document.querySelectorAll('.ratio-preset').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.ratio-preset').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const ratio = parseFloat(btn.dataset.ratio);
+                cropper.setAspectRatio(ratio);
+            });
+        });
+
+        $('btnRotateL').onclick = () => cropper.rotate(-90);
+        
+        let scaleX = 1;
+        $('btnFlipH').onclick = () => {
+            scaleX = scaleX === 1 ? -1 : 1;
+            cropper.scaleX(scaleX);
+        };
+
+        $('btnConfirmCrop').onclick = () => {
+            if(!cropper) return;
+            
+            $('loading-overlay').classList.add('active');
+            
+            setTimeout(() => {
+                const croppedCanvas = cropper.getCroppedCanvas({
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                });
+                
+                croppedImageData = croppedCanvas.toDataURL('image/jpeg', 0.95);
+                
+                const img = new Image();
+                img.onload = () => {
+                    const max = 1200;
+                    let w = img.width, h = img.height;
+                    if(w > max || h > max) {
+                        const r = Math.min(max/w, max/h);
+                        w *= r; h *= r;
+                    }
+                    
+                    const pc = document.createElement('canvas');
+                    pc.width = w; pc.height = h;
+                    pc.getContext('2d').drawImage(img, 0, 0, w, h);
+                    
+                    const pImg = new Image();
+                    pImg.onload = () => {
+                        imgPreview = pImg;
+                        
+                        document.body.classList.remove('cropper-phase');
+                        document.body.classList.add('editor-phase');
+                        
+                        canvasFrame.classList.add('visible');
+                        state = { ...defState };
+                        updateSlidersUI();
+                        document.querySelectorAll('.preset-card').forEach(el => el.classList.remove('active'));
+                        
+                        generatePresetThumbnails(pImg);
+                        triggerRender();
+                        
+                        $('loading-overlay').classList.remove('active');
+                        
+                        setTimeout(() => navBtns[1].click(), 300);
+                    };
+                    pImg.src = pc.toDataURL('image/jpeg', 0.8);
+                };
+                img.src = croppedImageData;
+            }, 100);
+        };
+
+        // --- RENDER ENGINE ---
+        let renderFrame = null;
+        let isRendering = false;
+        let renderQueued = false;
+
+        function triggerRender() {
+            if (isRendering) {
+                renderQueued = true;
+                return;
+            }
+            
+            isRendering = true;
+            renderFrame = requestAnimationFrame(() => {
+                draw(canvas, ctx, imgPreview, state);
+                isRendering = false;
+                
+                if (renderQueued) {
+                    renderQueued = false;
+                    setTimeout(triggerRender, 5);
+                }
+            });
+        }
+
+        function draw(cvs, cx, img, renderState = state) {
+            if(!img) return;
+            cvs.width = img.width; cvs.height = img.height;
+            const w = cvs.width, h = cvs.height;
+
+            if(isCompare && renderState === state) {
+                cx.drawImage(img, 0, 0, w, h);
+                return;
+            }
+
+            const b = renderState.brightness + renderState.exposure;
+            const c = renderState.contrast + (renderState.clarity * 0.2);
+            const s = renderState.saturation + (renderState.clarity * 0.1);
+            const bl = renderState.blur;
+            
+            cx.filter = `brightness(${b}) contrast(${c}) saturate(${s}) blur(${bl}px)`;
+            cx.drawImage(img, 0, 0, w, h);
+            cx.filter = 'none';
+
+            if(renderState.warmth !== 0) {
+                cx.globalCompositeOperation = 'overlay';
+                cx.fillStyle = renderState.warmth > 0 ? `rgba(255,140,0,${renderState.warmth*0.35})` : `rgba(0,130,255,${-renderState.warmth*0.35})`;
+                cx.fillRect(0,0,w,h);
+            }
+
+            if(renderState.fade > 0) {
+                cx.globalCompositeOperation = 'screen';
+                cx.fillStyle = `rgba(40,40,40,${renderState.fade*0.6})`;
+                cx.fillRect(0,0,w,h);
+            }
+
+            if(renderState.sharpness > 0 || renderState.clarity > 0) {
+                cx.globalCompositeOperation = 'overlay';
+                cx.globalAlpha = (renderState.sharpness * 0.5) + (renderState.clarity * 0.3);
+                cx.filter = 'contrast(1.5) grayscale(1)';
+                cx.drawImage(img, 0, 0, w, h);
+                cx.filter = 'none';
+                cx.globalAlpha = 1;
+            }
+
+                        if(renderState.glow > 0) {
+                cx.globalCompositeOperation = 'screen';
+                cx.globalAlpha = renderState.glow * 0.6;
+                cx.filter = 'blur(15px) contrast(1.2)';
+                cx.drawImage(img, 0, 0, w, h);
+                cx.filter = 'none';
+                cx.globalAlpha = 1;
+            }
+
+            if(renderState.lightLeak > 0) {
+                cx.globalCompositeOperation = 'screen';
+                const grad = cx.createLinearGradient(0, 0, w*0.6, h*0.6);
+                grad.addColorStop(0, `rgba(255, 100, 50, ${renderState.lightLeak * 0.7})`);
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+                cx.fillStyle = grad;
+                cx.fillRect(0,0,w,h);
+            }
+
+            if(renderState.vignette > 0) {
+                cx.globalCompositeOperation = 'multiply';
+                const grad = cx.createRadialGradient(w/2, h/2, 0, w/2, h/2, Math.max(w,h)*0.7);
+                grad.addColorStop(0.4, 'rgba(255,255,255,1)');
+                grad.addColorStop(1, `rgba(150,150,150,${1 - renderState.vignette})`);
+                cx.fillStyle = grad;
+                cx.fillRect(0,0,w,h);
+            }
+
+            if(renderState.grain > 0) {
+                cx.globalCompositeOperation = 'overlay';
+                cx.globalAlpha = renderState.grain * 0.8;
+                cx.fillStyle = patGrain;
+                cx.fillRect(0,0,w,h);
+                cx.globalAlpha = 1;
+            }
+
+            if(renderState.dust > 0) {
+                cx.globalCompositeOperation = 'screen';
+                cx.globalAlpha = renderState.dust * 0.7;
+                cx.fillStyle = patDust;
+                cx.fillRect(0,0,w,h);
+                cx.globalAlpha = 1;
+            }
+
+            cx.globalCompositeOperation = 'source-over';
+        }
+
+        // --- EDITOR ACTIONS ---
+        $('btn-reset').onclick = () => {
+            state = { ...defState };
+            updateSlidersUI();
+            document.querySelectorAll('.preset-card').forEach(el => el.classList.remove('active'));
+            triggerRender();
+        };
+
+        const compBtn = $('btn-compare');
+        const startComp = () => { isCompare = true; triggerRender(); };
+        const endComp = () => { isCompare = false; triggerRender(); };
+        compBtn.onmousedown = startComp; compBtn.onmouseup = endComp; compBtn.onmouseleave = endComp;
+        compBtn.ontouchstart = (e) => { e.preventDefault(); startComp(); };
+        compBtn.ontouchend = endComp;
+
+        $('btn-export').onclick = () => {
+            if(!imgPreview) return;
+            
+            $('export-overlay').classList.add('active');
+            
+            setTimeout(() => {
+                // Create export canvas with frame
+                const exportCanvas = document.createElement('canvas');
+                const exportCtx = exportCanvas.getContext('2d');
+                
+                // Calculate dimensions with frame
+                const padding = frameState.padding;
+                const totalPadding = padding * 2;
+                
+                exportCanvas.width = imgPreview.width + totalPadding;
+                exportCanvas.height = imgPreview.height + totalPadding;
+                
+                // Fill background
+                exportCtx.fillStyle = frameState.color;
+                exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                
+                // Apply corner radius to frame
+                if (frameState.radius > 0 || frameState.type === 'circle') {
+                    exportCtx.globalCompositeOperation = 'destination-in';
+                    exportCtx.beginPath();
+                    const radius = frameState.type === 'circle' ? Math.min(exportCanvas.width, exportCanvas.height) / 2 : frameState.radius;
+                    exportCtx.roundRect(0, 0, exportCanvas.width, exportCanvas.height, radius);
+                    exportCtx.fill();
+                    exportCtx.globalCompositeOperation = 'source-over';
+                }
+                
+                // Draw filtered image
+                const imgCanvas = document.createElement('canvas');
+                imgCanvas.width = imgPreview.width;
+                imgCanvas.height = imgPreview.height;
+                draw(imgCanvas, imgCanvas.getContext('2d'), imgPreview, state);
+                
+                // Draw image with its own radius
+                const imgRadius = frameState.type === 'circle' ? Math.min(imgPreview.width, imgPreview.height) / 2 : frameState.radius * 0.5;
+                if (imgRadius > 0) {
+                    exportCtx.save();
+                    exportCtx.beginPath();
+                    exportCtx.roundRect(padding, padding, imgPreview.width, imgPreview.height, imgRadius);
+                    exportCtx.clip();
+                    exportCtx.drawImage(imgCanvas, padding, padding);
+                    exportCtx.restore();
+                } else {
+                    exportCtx.drawImage(imgCanvas, padding, padding);
+                }
+                
+                const link = document.createElement('a');
+                link.download = `velora-edit-${Date.now()}.png`;
+                link.href = exportCanvas.toDataURL('image/png');
+                link.click();
+                
+                setTimeout(() => {
+                    $('export-overlay').classList.remove('active');
+                }, 800);
+            }, 100);
+        };
+
+    </script>
 </body>
     </html>
